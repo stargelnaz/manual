@@ -38,7 +38,9 @@ def env(name):
     if not p.exists():
         return None
     raw = p.read_bytes()
-    for enc in ('utf-16', 'utf-8-sig', 'utf-8'):
+    # utf-16 only on BOM: any even-length file "succeeds" as utf-16, yielding mojibake.
+    encodings = ('utf-16',) if raw[:2] in (b'\xff\xfe', b'\xfe\xff') else ('utf-8-sig', 'utf-8')
+    for enc in encodings:
         try:
             text = raw.decode(enc)
             break

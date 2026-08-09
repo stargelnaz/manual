@@ -23,6 +23,12 @@ dist-ssr
 *.sln
 *.sw?
 
-# Secrets
+# Secrets — patterns are case-sensitive on Linux/CI even though Windows git is not.
+.secrets
 .Secrets
 .env
+.env.*
+!.env.example
+
+# extraction intermediates (regenerate with tools/extract.py)
+build/

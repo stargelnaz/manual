@@ -1,0 +1,72 @@
+{
+  "_comment": [
+    "Hand decisions applied by the importer after extraction. Keyed by source_line",
+    "(1-based w:p index) plus a body fingerprint, so an edit upstream invalidates the",
+    "override loudly instead of silently applying to different text.",
+    "Never edit the .docx to record these — a re-export would lose them."
+  ],
+  "_source": "languages/english/data-app-Foreword-through-900s-no-auxilliaries.docx",
+  "emphasis": [
+    {
+      "source_line": 167,
+      "manual_paragraph": "21.2",
+      "subpoint": "(3)",
+      "action": "drop-emphasis",
+      "tag": "em",
+      "span_text": ";",
+      "match_prefix": "or same-sex relations",
+      "reason": "Italic applied to a lone semicolon — an authoring slip carrying no meaning. Confirmed by the user; it was the only emphasis anywhere in 21.2 (w:p 164-172), so the paragraph now has no italics at all.",
+      "decided": "2026-08-06"
+    },
+    {
+      "source_line": 200,
+      "manual_paragraph": "27",
+      "action": "drop-emphasis",
+      "tag": "em",
+      "span_text": "s",
+      "match_prefix": "Board of General Superintendents that reflect",
+      "reason": "Italic on the inserted letter of 'reflects' — residue of an accepted tracked change. User: no italics at all in this paragraph.",
+      "decided": "2026-08-06"
+    },
+    {
+      "source_line": 200,
+      "manual_paragraph": "27",
+      "action": "drop-emphasis",
+      "tag": "em",
+      "span_text": ".",
+      "match_prefix": "report to the subsequent General Assembly",
+      "reason": "Italic on the closing full stop — same tracked-change residue. User: no italics at all in this paragraph.",
+      "decided": "2026-08-06"
+    },
+    {
+      "source_line": 537,
+      "manual_paragraph": "139",
+      "action": "drop-emphasis",
+      "tag": "b",
+      "span_text": ":",
+      "match_prefix": "business of the church board</b> shall be",
+      "reason": "Bold on the trailing colon only. The other two bold spans in this paragraph are kept: 'Business.' is the run-in heading used throughout the section, and 'business of the church board' is deliberate emphasis.",
+      "keeps": ["Business.", "business of the church board"],
+      "decided": "2026-08-06"
+    },
+    {
+      "source_line": 1327,
+      "manual_paragraph": "402.1",
+      "action": "drop-emphasis",
+      "tag": "em",
+      "span_text": ".",
+      "match_prefix": "and the IBOE",
+      "reason": "Italic on the closing full stop. The book title 'Manual of the Church of the Nazarene' in the same paragraph is kept — it matches the other 62 italicised occurrences.",
+      "keeps": ["Manual of the Church of the Nazarene"],
+      "decided": "2026-08-06"
+    },
+    {
+      "source_line": 130,
+      "manual_paragraph": "15",
+      "action": "drop-all-emphasis",
+      "tag": "em",
+      "reason": "All four italic spans in this paragraph are leftovers from the legal-blackline markup originally used to show revisions — not emphasis. Confirmed by the user. Same origin as the stray italics in 27.",
+      "decided": "2026-08-06"
+    }
+  ]
+}

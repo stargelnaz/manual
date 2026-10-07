@@ -24,7 +24,10 @@ OUT.mkdir(exist_ok=True)
 with zipfile.ZipFile(DOCX) as z:
     xml = z.read('word/document.xml').decode('utf8')
 
-T = re.compile(r'<w:t(?: [^>]*)?>(.*?)</w:t>', re.S)      # not <w:tabs>
+# A run's text, with each <w:tab/> kept as "\t". The delegate tables (201.1, 301.1...)
+# separate their columns with tabs and nothing else, so dropping them ran the cells
+# together ("0-6,0004"). The tab stops themselves live in <w:tabs> in the w:pPr.
+TEXT = re.compile(r'<w:t(?: [^>]*)?>(.*?)</w:t>|<w:tab/>', re.S)   # not <w:tabs>
 R = re.compile(r'<w:r[ >](?:(?!</w:r>).)*?</w:r>', re.S)   # not <w:rPr>
 PARA = re.compile(r'<w:p[ >].*?</w:p>', re.S)
 STYLE = re.compile(r'<w:rStyle w:val="(italic|bold)"')
@@ -36,7 +39,8 @@ out = []
 for pi, p in enumerate(paras, 1):
     runs = []
     for r in R.findall(p):
-        t = html.unescape(''.join(T.findall(r)))
+        t = html.unescape(''.join('\t' if m.group(1) is None else m.group(1)
+                                  for m in TEXT.finditer(r)))
         if t:
             m = STYLE.search(r)
             runs.append((m.group(1) if m else None, t))

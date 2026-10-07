@@ -23,11 +23,14 @@ is passed, so a lost or truncated registry cannot silently re-key the Manual.
 """
 import json, re, sys, hashlib, collections, pathlib, secrets
 
+from refs import PARA_CITATION, PARA_ITEM, PARA_FIRST
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 TYPED = {p['n']: p['typed'] for p in json.load(open(ROOT / 'build/paras.json', encoding='utf8'))}
 NORM = json.load(open(ROOT / 'build/paras_norm.json', encoding='utf8'))
+OV = json.load(open(ROOT / 'overrides.json', encoding='utf8'))
 LANG = 'en'
 REGISTRY = ROOT / 'node_keys.json'
 MINT = '--mint' in sys.argv
@@ -46,7 +49,7 @@ PUA = {'': '<', '': 'p', '': '>', '': '☐'}
 CLASS = re.compile(r'class\s*name\s*=\s*[\'"‘’“”]\s*([a-zA-Z0-9-]+)', re.I)
 LEADNUM = re.compile(r'^\s*(\d+(?:\.\d+)*)\.\s+')
 SUBPOINT = re.compile(r'^\s*(\((?:\d+|[a-z]|[ivx]+)\))\s+')
-LISTMARK = re.compile(r'^\s*(\d+\.|[a-z]\.|\([a-z0-9]+\))\s+')
+LISTMARK = re.compile(r'^\s*(\d+\.|[ivx]+\.|[a-z]\.|\([a-z0-9]+\))\s+')
 TAGNUM = re.compile(r'<(?:Para|Paa)Num>\s*(\d[\d.]*?)\.?\s*</ParaNum>')
 VERSE = re.compile(r'\b(?:[123]\s)?[A-Z][a-z]+\s+\d+:\d+')
 INLINE = ('em', 'b', 'sc')
@@ -56,7 +59,16 @@ PART_OPEN = 'part-number'
 PART_BODY = {'part-title', 'part-chapter-list'}
 LEVEL = {'part-number': 1, 'heading-1': 2, 'subheading': 3}
 HEADINGS = set(LEVEL) | PART_BODY
-PROSE = {'lead', 'continuation', 'subpoint', 'list-item', 'note', 'bible-reference'}
+PROSE = {'lead', 'continuation', 'subpoint', 'list-item', 'note', 'bible-reference',
+         'table-row', 'table-note'}
+
+# Tables, by the paragraph they sit in. Word sets each row as one w:p with its
+# cells separated by tabs; a table-row block keeps them, one "\t" between cells.
+# Listed rather than detected, because tabs also follow list markers and fill the
+# blanks on the forms. 601.2 is a table too, but its second column was wrapped by
+# hand with more tabs, so it stays prose until it is cleaned up.
+TABLES = {'201.1', '201.2', '205.15', '301.1'}
+NUMRANGE = re.compile(r'^(\d[\d,]*)-(\d[\d,]*)$')         # 0-6,000 -> 0–6,000
 
 
 def is_scripture(body):
@@ -159,6 +171,7 @@ for p in NORM:
         add_node(number, 'paragraph', number, True, parent, section_of())
         last_number = number
         kind, is_lead = 'lead', True
+        number = None
 
     elif kind == PART_OPEN:
         stack.clear()
@@ -176,11 +189,15 @@ for p in NORM:
                      None, stack.get(1), 2)
 
     elif kind in LEVEL:
+        # The rituals (700-709) are numbered subheadings: the number is the heading's,
+        # shown on it and citable. last_number stays put, so the generated locators
+        # after it, and with them the registry keys, do not move.
         lv = LEVEL[kind]
         for deeper in [k for k in stack if k >= lv]:
             del stack[deeper]
-        stack[lv] = add_node(genkey('heading'), 'heading', None, False,
+        stack[lv] = add_node(genkey('heading'), 'heading', number, bool(number),
                              None, section_of(lv), lv)
+        number = None
 
     elif kind == 'note':
         # A note after prose or another note cites it. A note after a heading, or
@@ -197,8 +214,20 @@ for p in NORM:
             lm = LISTMARK.match(body)
             if lm:
                 marker, body = lm.group(1), body[lm.end():]
+        elif last_number in TABLES and '\t' in p['formatted']:
+            # A leading tab only moves the first cell to its tab stop; it is not a cell.
+            cells = [clean(c) for c in p['formatted'].split('\t')]
+            if not cells[0]:
+                cells = cells[1:]
+            body, kind = '\t'.join(NUMRANGE.sub('\\1–\\2', c) for c in cells), 'table-row'
+        elif prev_kind == 'table-row':
+            kind = 'table-note'
         else:
             kind = 'continuation'
+
+    # A number taken off the body must have landed on a node. Before this check
+    # the 700-709 subheadings lost theirs without a trace.
+    assert number is None, 'number %s stripped from w:p %d (%s) but not stored' % (number, n, kind)
 
     if open_key is None:
         add_node(genkey('heading'), 'heading', None, False, None, None, 2)
@@ -254,6 +283,30 @@ for i, b in enumerate(blocks):
     bid = hashlib.sha1(('%s|%s|%d' % (LANG, key, b['ordinal'])).encode()).hexdigest()[:8]
     blocks[i] = {'id': bid, **b, 'node_key': key}
 
+# ---------------------------------------------------------------- references
+# Each item of a cross-reference links to the node its first number names:
+# "(300.1–300.3, 301)" -> <ref to="key of 300.1">300.1–300.3</ref>, <ref to="key of 301">301</ref>.
+# The tag carries the key, not the number, so a link survives renumbering. An item
+# that names no node in this export must be listed in overrides.json "references"
+# (years, the 800s and 900s), and every listed item must still be one.
+bynum = {d['number']: d['key'] for d in nodes if d['number']}
+UNLINKED = {(r['source_line'], r['text']) for o in OV['references'] for r in o['items']}
+unlinked = set()
+
+
+def link(cite, line):
+    def item(m):
+        key = bynum.get(PARA_FIRST.match(m.group(0)).group(0))
+        if key:
+            return '<ref to="%s">%s</ref>' % (key, m.group(0))
+        unlinked.add((line, m.group(0)))
+        return m.group(0)
+    return PARA_ITEM.sub(item, cite)
+
+
+for b in blocks:
+    b['body'] = PARA_CITATION.sub(lambda m: link(m.group(0), b['source_line']), b['body'])
+
 # ---------------------------------------------------------------- gates
 bykey = {d['key']: d for d in nodes}
 numbered = [d for d in nodes if d['number']]
@@ -271,17 +324,40 @@ _rec = sorted(blocks, key=lambda b: (bykey[b['node_key']]['order'], b['ordinal']
 assert [b['source_line'] for b in _rec] == sorted(b['source_line'] for b in _rec), \
     'nodes.order + blocks.ordinal does not reproduce document order'
 
-# The numbered set is the tagged set plus 346.3, which carries no <ParaNum> wrapper.
+# The numbered paragraphs are the tagged set plus 346.3, which carries no <ParaNum>
+# wrapper. The only numbered headings are the ten rituals.
 _tagged = {m.group(1) for t in TYPED.values() for m in TAGNUM.finditer(t)}
-assert {d['number'] for d in numbered} - _tagged == {'346.3'}, 'unexpected numbered node'
+assert {d['number'] for d in numbered if d['role'] == 'paragraph'} - _tagged == {'346.3'}, \
+    'unexpected numbered paragraph'
+assert {d['number'] for d in numbered if d['role'] != 'paragraph'} == \
+       {str(n) for n in range(700, 710)}, 'unexpected numbered heading'
 assert not _tagged - {d['number'] for d in numbered}, 'tagged paragraph number missing'
 
+REF_OPEN = re.compile(r'<ref to="([^"]*)">')
 for b in blocks:
-    assert not re.search(r'<(?!/?(?:em|b|sc)>)', b['body']), \
+    assert not re.search(r'<(?!/?(?:em|b|sc)>|ref to="[^"]*">|/ref>)', b['body']), \
         'stray markup in %s: %r' % (b['id'], b['body'][:80])
-    for t in INLINE:
+    for t in INLINE + ('ref',):
         assert len(re.findall(r'<' + t + r'[ >]', b['body'])) == \
                len(re.findall(r'</' + t + r'>', b['body'])), 'unbalanced %s in %s' % (t, b['id'])
+    assert all(k in bykey for k in REF_OPEN.findall(b['body'])), 'dangling ref in %s' % b['id']
+
+assert not unlinked - UNLINKED, 'unresolved references, list them in overrides.json:\n%s' % \
+    '\n'.join('  w:p %d  %s' % u for u in sorted(unlinked - UNLINKED))
+assert not UNLINKED - unlinked, 'stale reference overrides (now linked, or text changed):\n%s' % \
+    '\n'.join('  w:p %d  %s' % u for u in sorted(UNLINKED - unlinked))
+
+# Every listed table is found, every row has as many cells as its header row, and
+# the line after a table is its "(For every ...)" note.
+_tables = collections.defaultdict(list)
+for b in blocks:
+    if b['kind'] == 'table-row':
+        _tables[bykey[b['node_key']]['number']].append(b['body'].count('\t') + 1)
+    if b['kind'] == 'table-note':
+        assert b['body'].startswith('('), 'table note in %s: %r' % (b['id'], b['body'][:60])
+assert set(_tables) == TABLES, 'tables found: %s' % sorted(_tables)
+for num, widths in _tables.items():
+    assert len(widths) > 1 and len(set(widths)) == 1, 'ragged table in %s: %s' % (num, widths)
 
 # No section cycles, and every chain terminates at a part or the document root.
 # PART IX (auxiliary constitutions) exists in the Manual but is not in this
@@ -309,6 +385,8 @@ print('blocks :', len(blocks), 'of', len(NORM), 'w:p')
 print('numbers:', numbered[0]['number'], '->', numbered[-1]['number'])
 print('nodes with a section:', sum(1 for d in nodes if d['section_key']),
       ' roots:', sum(1 for d in nodes if not d['section_key']))
+print('refs   :', sum(len(REF_OPEN.findall(b['body'])) for b in blocks), 'linked  ',
+      len(unlinked), 'unlinked by override')
 print('keys   :', len(nodes), 'from', REGISTRY.name,
       '  unused registry entries:', len(registry) - len(nodes))
 print('all gates passed')

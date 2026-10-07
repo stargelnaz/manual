@@ -15,6 +15,8 @@ alignment the translation app depends on.
 """
 import json, re, sys, collections, pathlib
 
+from refs import PARA_CITATION, PARA_RANGE
+
 sys.stdout.reconfigure(encoding='utf-8')
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -75,15 +77,8 @@ def citation_dashes(cite):
 
 # Dashes in paragraph cross-references, by the same rule: a range inside one
 # paragraph takes an en dash (300.2–300.3, 113–113.1) and a range across paragraphs
-# takes an em dash (100—109, 103—104.3, 139.19—140). A list counts as references
-# only in parentheses on its own or after "paragraph(s)" or "Manual", which keeps
-# dates, the salary tables and "30-180 days" out.
-PNUM = r'\d+(?:\.\d+)*'
-PREF = r'%s(?:\s*[-–—]\s*%s)?' % (PNUM, PNUM)
-PLIST = r'%s(?:\s*(?:[,;]|,? or|,? and)\s*%s)*' % (PREF, PREF)
-PARA_CITATION = re.compile(r'(?<=\()%s(?=\))|(?:(?<=paragraphs )|(?<=paragraph )|'
-                           r'(?<=Manual )|(?<=Manual</em> ))%s' % (PLIST, PLIST))
-PARA_RANGE = re.compile(r'(%s)\s*[-–—]\s*(%s)' % (PNUM, PNUM))
+# takes an em dash (100—109, 103—104.3, 139.19—140). What counts as a reference is
+# in refs.py, shared with the build, which links them.
 
 
 def para_dash(r):

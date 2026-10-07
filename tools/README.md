@@ -44,8 +44,13 @@ and inline formatting from the other.
 - every `parent_key` and `section_key` resolves; no cycles in the section chain
 - paragraph numbers strictly increasing
 - `nodes.order` + `blocks.ordinal` reproduces document order — the query the app runs
-- the numbered set equals the tagged set plus exactly `{346.3}`
-- no block body contains markup outside `<em> <b> <sc>`; all inline tags balance
+- the numbered paragraphs equal the tagged set plus exactly `{346.3}`; the only
+  numbered headings are the rituals, 700–709
+- every number taken off the front of a block lands on a node
+- no block body contains markup outside `<em> <b> <sc> <ref to="key">`; all inline tags balance
+- every `<ref>` points to an existing node; every cross-reference item that names no
+  node is listed in `overrides.json` under `references`, and every listed item still
+  is one (the patterns are in `refs.py`, shared with normalize)
 - exactly 9 parts — I-VIII and X
 
 PART IX exists in the Manual (the auxiliary constitutions, 800 series) but is not in

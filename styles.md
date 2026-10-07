@@ -2,7 +2,7 @@
 
 A working spec for the Manual's text styles, to edit before any reader CSS is written.
 It replaces the 50+ InDesign paragraph styles with a short, logical set. When a style
-here is settled, it becomes a class in `src/manual.css` (not yet created) under the
+here is settled, it becomes a class in `src/manual.css` under the
 same name.
 
 ## Conventions
@@ -98,6 +98,41 @@ counters, because the source numbering is canonical and sometimes restarts.
 | Space between items | 0 |
 | Data kinds | `list-item` with a marker, `subpoint` |
 
+## Tables
+
+The delegate tables (201.1, 201.2, 205.15, 301.1). Word sets each row as a paragraph
+with its cells on tab stops; the data keeps one `\t` between cells and the reader sets
+consecutive rows as one table, so the columns line up. The tables are listed by
+paragraph in `tools/build.py` (`TABLES`), not detected, since tabs also follow list
+markers and fill the blanks on the forms. 601.2 is a table too, but is still prose
+until its hand-wrapped second column is cleaned up.
+
+### `table`
+*InDesign: TBD.*
+
+| | |
+|---|---|
+| Size / leading | as `para` |
+| First-line indent | 0 |
+| Space between rows | 0 |
+| Space before | 0p3 (as `para`, for now); none after, so `table-note` sits tight |
+| Columns | one per tab-separated cell, sized to the content, 1p6 apart |
+| Cell alignment | centered, as on the Word tab stops |
+| Column heads | the first row; same weight as the body, as in print |
+| Number ranges | en dash (`0–6,000`) |
+| Data kinds | `table-row` |
+
+### `table-note`
+The parenthetical rule that closes a table: "(For every 5,000 members above
+40,000…)". *InDesign: TBD.*
+
+| | |
+|---|---|
+| Based on | `para` |
+| First-line indent | 0 |
+| Space before / after | 0 / 0p3 |
+| Data kinds | `table-note` (the block straight after a table) |
+
 ## Headings and part openers
 
 Carried over from the current reader so the whole set lives in one place. Their
@@ -119,9 +154,18 @@ names are still open. These are the only styles with space before and after.
 | strong | `<b>` | bold |
 | small caps | `<sc>` | `font-variant: small-caps` |
 | `para-number` | paragraph number before a `lead` block | bold, always followed by a full stop, then a space: `32.`, `102.2.` |
+| `cross-reference` | `<ref to="key">` around one item of a paragraph reference | a link in `--text-muted` (the `note` color), no underline, no visited state |
 
 The full stop is added when the number is displayed. The stored number stays `32` or
 `102.2`, because it's also the paragraph's key for sorting and cross-references.
+
+The numbered rituals (700–709) are `heading-2` blocks whose node carries the number.
+It is shown before the title in the heading's own style: `700. LORD’S SUPPER`.
+
+Each item of a cross-reference links to the paragraph its first number names, so
+`(300.1–300.3, 301)` is two links, to 300.1 and to 301. `tools/build.py` adds the
+tags; an item that names no paragraph in this export (a year, the 800s) must be
+listed in `overrides.json` under `references`.
 
 ## Dashes
 

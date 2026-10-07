@@ -7,6 +7,7 @@ import '@fontsource-variable/archivo/wdth.css'; // weight + width axes (condense
 import '@fontsource-variable/archivo/wdth-italic.css';
 import './theme.css';
 import './ui.css';
+import './manual.css';
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <App />

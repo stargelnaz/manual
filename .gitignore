@@ -32,3 +32,6 @@ dist-ssr
 
 # extraction intermediates (regenerate with tools/extract.py)
 build/
+
+# Python
+__pycache__/

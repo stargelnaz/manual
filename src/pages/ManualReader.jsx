@@ -20,9 +20,10 @@ async function fetchAllBlocks() {
   }
 }
 
-// Bodies contain only <em>, <b>, <sc> — enforced by the build gates — and every
-// tag balances within its block, so a single stack is enough to parse them.
-const TAG_RE = /<(\/?)(em|b|sc)>/g;
+// Bodies contain only <em>, <b>, <sc> and <ref to="key"> — enforced by the build
+// gates — and every tag balances within its block, so a single stack is enough to
+// parse them. A ref is a paragraph cross-reference; its target is a node key.
+const TAG_RE = /<(\/?)(em|b|sc|ref)(?: to="([^"]*)")?>/g;
 
 function renderInline(body, keyPrefix) {
   const root = { tag: null, children: [] };
@@ -35,7 +36,7 @@ function renderInline(body, keyPrefix) {
     if (text) stack[stack.length - 1].children.push(text);
     last = m.index + m[0].length;
     if (m[1] === '') {
-      const node = { tag: m[2], children: [] };
+      const node = { tag: m[2], to: m[3], children: [] };
       stack[stack.length - 1].children.push(node);
       stack.push(node);
     } else if (stack.length > 1) {
@@ -51,6 +52,13 @@ function renderInline(body, keyPrefix) {
       const key = `${keyPrefix}-${n++}`;
       if (c.tag === 'em') return <em key={key}>{toReact(c)}</em>;
       if (c.tag === 'b') return <b key={key}>{toReact(c)}</b>;
+      // A real hash link, so the browser's Back returns to where the reader was.
+      if (c.tag === 'ref')
+        return (
+          <a key={key} className="ref" href={`#${anchorId(c.to)}`}>
+            {toReact(c)}
+          </a>
+        );
       return (
         <span key={key} style={{ fontVariant: 'small-caps' }}>
           {toReact(c)}
@@ -80,7 +88,10 @@ const TOC_PROMOTE = {
 
 function Block({ block }) {
   const body = renderInline(block.body, block.id);
-  const id = TOC_LEVEL[block.kind] && block.kind !== 'part-title' ? anchorId(block.node_key) : undefined;
+  // Contents entries and numbered paragraphs (what a cross-reference points to)
+  // carry their node's anchor.
+  const anchored = (TOC_LEVEL[block.kind] && block.kind !== 'part-title') || block.kind === 'lead';
+  const id = anchored ? anchorId(block.node_key) : undefined;
 
   switch (block.kind) {
     case 'part-number':
@@ -102,15 +113,18 @@ function Block({ block }) {
     case 'subheading':
       return (
         <h3 id={id} style={styles.subheading}>
+          {block.number_visible && `${block.number}. `}
           {body}
         </h3>
       );
+    case 'table-note':
+      return <p className="table-note">{body}</p>;
     case 'note':
     case 'bible-reference':
       return <p style={styles.note}>{body}</p>;
     case 'lead':
       return (
-        <p style={styles.paragraph}>
+        <p id={id} style={styles.paragraph}>
           {block.number_visible && (
             <span style={styles.paraNum}>{block.number}. </span>
           )}
@@ -138,17 +152,37 @@ function ListRun({ blocks }) {
   );
 }
 
+// Consecutive table-row blocks render as one table, so the columns line up. Each
+// row's cells are separated by "\t"; the first row is the column heads.
+function TableRun({ blocks }) {
+  const [head, ...rows] = blocks.map((b) => b.body.split('\t'));
+  const cells = (row, Cell, id) =>
+    row.map((c, i) => <Cell key={i}>{renderInline(c, `${id}-${i}`)}</Cell>);
+  return (
+    <table className="table">
+      <thead>
+        <tr>{cells(head, 'th', blocks[0].id)}</tr>
+      </thead>
+      <tbody>
+        {rows.map((row, r) => (
+          <tr key={blocks[r + 1].id}>{cells(row, 'td', blocks[r + 1].id)}</tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+const RUN_KIND = { subpoint: 'list', 'list-item': 'list', 'table-row': 'table' };
+
 function groupBlocks(blocks) {
   const groups = [];
   for (const b of blocks) {
-    const isListKind = b.kind === 'subpoint' || b.kind === 'list-item';
+    const run = RUN_KIND[b.kind] ?? null;
     const last = groups[groups.length - 1];
-    if (isListKind && last?.list) {
+    if (run && last?.run === run) {
       last.blocks.push(b);
-    } else if (isListKind) {
-      groups.push({ list: true, blocks: [b] });
     } else {
-      groups.push({ list: false, blocks: [b] });
+      groups.push({ run, blocks: [b] });
     }
   }
   return groups;
@@ -158,7 +192,7 @@ function groupBlocks(blocks) {
 function groupSheets(groups) {
   const sheets = [];
   for (const g of groups) {
-    if (!sheets.length || (!g.list && g.blocks[0].kind === 'part-number')) sheets.push([]);
+    if (!sheets.length || (!g.run && g.blocks[0].kind === 'part-number')) sheets.push([]);
     sheets[sheets.length - 1].push(g);
   }
   return sheets;
@@ -202,6 +236,7 @@ function buildToc(blocks) {
     }
     if (b.kind === 'part-number') entry.number = plainText(b.body);
     else entry.title = plainText(b.body);
+    if (b.kind === 'subheading' && b.number_visible) entry.number = b.number;
   }
   return { roots, byKey, keys: [...byKey.keys()] };
 }
@@ -377,10 +412,12 @@ export default function ManualReader({ tocOpen, onTocClose }) {
           {error && <div style={styles.status}>Failed to load: {error.message}</div>}
           {!error && !blocks && <div style={styles.status}>Loading the Manual…</div>}
           {sheets.map((groups) => (
-            <section key={groups[0].blocks[0].id} className="page" style={styles.sheet}>
+            <section key={groups[0].blocks[0].id} className="page manual" style={styles.sheet}>
               {groups.map((g) =>
-                g.list ? (
+                g.run === 'list' ? (
                   <ListRun key={g.blocks[0].id} blocks={g.blocks} />
+                ) : g.run === 'table' ? (
+                  <TableRun key={g.blocks[0].id} blocks={g.blocks} />
                 ) : (
                   <Block key={g.blocks[0].id} block={g.blocks[0]} />
                 )
@@ -471,8 +508,8 @@ const styles = {
     margin: `${pt(3)} 0`,
     textIndent: pt(9),
   },
-  paraNum: {
-    fontWeight: 700,
+    paraNum: {
+    fontWeight: 600,
   },
   note: {
     margin: `${pt(3)} 0`,

@@ -1,0 +1,36 @@
+/*
+ * Manual text styles, as specified in styles.md, under the same names.
+ * Scoped to the reading sheet (.manual). Sizes are print points through --pt,
+ * which the reader sets on the sheet, so calc(9 * var(--pt)) is the print 0p9.
+ */
+
+/* table: rows set tight, no indent; a tab in the source separates the cells.
+   The first row is the column heads. Cells are centered, as on the Word tab stops. */
+.manual .table {
+  border-collapse: collapse;
+  margin: calc(3 * var(--pt)) 0 0;
+}
+
+.manual .table th,
+.manual .table td {
+  padding: 0;
+  font-weight: inherit;
+  text-align: center;
+  vertical-align: baseline;
+}
+
+.manual .table :is(th, td) + :is(th, td) {
+  padding-left: calc(18 * var(--pt));
+}
+
+/* cross-reference: a link to a cited paragraph, in the note color. Color alone marks
+   it; visited and unvisited look the same. */
+.manual .ref {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* table-note: the "(For every ...)" line closing a table, tight to it. */
+.manual .table-note {
+  margin: 0 0 calc(3 * var(--pt));
+}

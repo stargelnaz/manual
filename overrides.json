@@ -68,5 +68,91 @@
       "reason": "All four italic spans in this paragraph are leftovers from the legal-blackline markup originally used to show revisions — not emphasis. Confirmed by the user. Same origin as the stray italics in 27.",
       "decided": "2026-08-06"
     }
+  ],
+  "references": [
+    {
+      "action": "unlinked",
+      "reason": "Years in the Historical Statement and its sources, not paragraph numbers.",
+      "decided": "2026-10-07",
+      "items": [
+        {"source_line": 28, "text": "1899"},
+        {"source_line": 28, "text": "1901"},
+        {"source_line": 28, "text": "1902"},
+        {"source_line": 29, "text": "1904"},
+        {"source_line": 35, "text": "1919"},
+        {"source_line": 42, "text": "1980"},
+        {"source_line": 42, "text": "1984"}
+      ]
+    },
+    {
+      "action": "unlinked",
+      "reason": "Cite the 800s (auxiliary constitutions and bylaws, including the NYI Ministry Plans) and 900-905, none of which is in this export. When they land these resolve, and the stale-override gate says to remove them.",
+      "decided": "2026-10-07",
+      "items": [
+        {"source_line": 428, "text": "810"},
+        {"source_line": 428, "text": "811"},
+        {"source_line": 428, "text": "812"},
+        {"source_line": 616, "text": "812"},
+        {"source_line": 627, "text": "812"},
+        {"source_line": 652, "text": "810.100–810.118"},
+        {"source_line": 657, "text": "811"},
+        {"source_line": 877, "text": "810"},
+        {"source_line": 877, "text": "811"},
+        {"source_line": 1024, "text": "810.200–810.219"},
+        {"source_line": 1026, "text": "811"},
+        {"source_line": 1027, "text": "811"},
+        {"source_line": 1079, "text": "900"},
+        {"source_line": 1083, "text": "901"},
+        {"source_line": 1084, "text": "902"},
+        {"source_line": 1112, "text": "900.1"},
+        {"source_line": 1123, "text": "902"},
+        {"source_line": 1125, "text": "905"},
+        {"source_line": 1137, "text": "900.2"},
+        {"source_line": 1158, "text": "900.3"},
+        {"source_line": 1180, "text": "901"},
+        {"source_line": 1188, "text": "903"},
+        {"source_line": 1189, "text": "904"},
+        {"source_line": 1263, "text": "810"},
+        {"source_line": 1265, "text": "810"},
+        {"source_line": 1270, "text": "811"},
+        {"source_line": 1276, "text": "811"},
+        {"source_line": 1379, "text": "905"}
+      ]
+    },
+    {
+      "action": "unlinked",
+      "reason": "The year a statement was adopted or last revised, closing each Current Moral and Social Issues statement, not a paragraph number.",
+      "decided": "2026-10-07",
+      "items": [
+        {"source_line": 2047, "text": "2017"},
+        {"source_line": 2048, "text": "2013"},
+        {"source_line": 2049, "text": "2017"},
+        {"source_line": 2050, "text": "2017"},
+        {"source_line": 2056, "text": "2017"},
+        {"source_line": 2057, "text": "2017"},
+        {"source_line": 2072, "text": "2023"},
+        {"source_line": 2075, "text": "2013"},
+        {"source_line": 2080, "text": "2017"},
+        {"source_line": 2082, "text": "2023"},
+        {"source_line": 2084, "text": "2013"},
+        {"source_line": 2086, "text": "2023"},
+        {"source_line": 2089, "text": "2023"},
+        {"source_line": 2093, "text": "2017"},
+        {"source_line": 2119, "text": "2017"},
+        {"source_line": 2128, "text": "2023"},
+        {"source_line": 2132, "text": "2017"},
+        {"source_line": 2133, "text": "2017"},
+        {"source_line": 2134, "text": "2023"},
+        {"source_line": 2137, "text": "2023"},
+        {"source_line": 2140, "text": "2023"},
+        {"source_line": 2141, "text": "2017"},
+        {"source_line": 2142, "text": "2009"},
+        {"source_line": 2144, "text": "2013"},
+        {"source_line": 2145, "text": "2013"},
+        {"source_line": 2148, "text": "2013"},
+        {"source_line": 2149, "text": "2013"},
+        {"source_line": 2150, "text": "2017"}
+      ]
+    }
   ]
 }

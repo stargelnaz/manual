@@ -213,13 +213,15 @@ export default function LexiconReview() {
         <h1 style={styles.h1}>Lexicon Review</h1>
         <div style={styles.tabs}>
           <button
-            style={mode === 'review' ? styles.tabActive : styles.tab}
+            className="btn btn-sm"
+            aria-pressed={mode === 'review'}
             onClick={() => setMode('review')}
           >
             Review ({unreviewed.length} left)
           </button>
           <button
-            style={mode === 'flagged' ? styles.tabActive : styles.tab}
+            className="btn btn-sm"
+            aria-pressed={mode === 'flagged'}
             onClick={() => setMode('flagged')}
           >
             Flagged ({flagged.length})
@@ -267,7 +269,7 @@ export default function LexiconReview() {
                   : 'Nothing was flagged. Everything is marked OK.'}
               </p>
               {flagged.length > 0 && (
-                <button style={styles.primaryButton} onClick={() => setMode('flagged')}>
+                <button className="btn btn-primary" style={{ marginTop: 12 }} onClick={() => setMode('flagged')}>
                   Go to Flagged List
                 </button>
               )}
@@ -303,21 +305,21 @@ export default function LexiconReview() {
       )}
 
       <footer style={styles.footer}>
-        <button style={styles.secondaryButton} onClick={exportMarkdown}>
+        <button className="btn btn-sm" onClick={exportMarkdown}>
           Export edited lexicon-base.md
         </button>
         {confirmingReset ? (
           <>
             <span style={styles.confirmText}>Reset all progress?</span>
-            <button style={styles.dangerButton} onClick={resetAll}>
+            <button className="btn btn-sm btn-danger" onClick={resetAll}>
               Yes, reset
             </button>
-            <button style={styles.secondaryButton} onClick={() => setConfirmingReset(false)}>
+            <button className="btn btn-sm" onClick={() => setConfirmingReset(false)}>
               Cancel
             </button>
           </>
         ) : (
-          <button style={styles.dangerButton} onClick={() => setConfirmingReset(true)}>
+          <button className="btn btn-sm btn-danger-outline" onClick={() => setConfirmingReset(true)}>
             Reset all progress
           </button>
         )}
@@ -401,10 +403,10 @@ function HeadwordCard({ group, draft, onChange, noteDraft, onNoteChange, onOk, o
       </label>
 
       <div style={styles.cardActions}>
-        <button style={styles.okButton} onClick={onOk}>
+        <button className="btn btn-success" style={styles.cardAction} onClick={onOk}>
           OK
         </button>
-        <button style={styles.flagButton} onClick={onFlag}>
+        <button className="btn btn-danger" style={styles.cardAction} onClick={onFlag}>
           Review
         </button>
       </div>
@@ -461,10 +463,10 @@ function FlaggedGroupRow({ group, status, isOpen, onOpen, onResolve, onReopen, o
           </div>
 
           <div style={styles.cardActions}>
-            <button style={styles.okButton} onClick={() => onResolve(draft)}>
+            <button className="btn btn-success" style={styles.cardAction} onClick={() => onResolve(draft)}>
               Save &amp; Resolve
             </button>
-            <button style={styles.secondaryButton} onClick={onReopen}>
+            <button className="btn" onClick={onReopen}>
               Send back to Review queue
             </button>
           </div>
@@ -490,23 +492,6 @@ const styles = {
   },
   h1: { fontSize: 22, margin: 0 },
   tabs: { display: 'flex', gap: 8 },
-  tab: {
-    padding: '6px 12px',
-    borderRadius: 6,
-    border: '1px solid var(--border-strong)',
-    background: 'transparent',
-    cursor: 'pointer',
-    fontSize: 13,
-  },
-  tabActive: {
-    padding: '6px 12px',
-    borderRadius: 6,
-    border: '1px solid var(--accent)',
-    background: 'var(--accent)',
-    color: 'var(--accent-text)',
-    cursor: 'pointer',
-    fontSize: 13,
-  },
   progressBarOuter: {
     height: 8,
     background: 'var(--track)',
@@ -566,60 +551,14 @@ const styles = {
     resize: 'vertical',
   },
   cardActions: { display: 'flex', gap: 10, marginTop: 8 },
-  okButton: {
-    flex: 1,
-    padding: '10px 16px',
-    borderRadius: 6,
-    border: 'none',
-    background: 'var(--ok)',
-    color: 'var(--text-strong)',
-    fontSize: 14,
-    cursor: 'pointer',
-  },
-  flagButton: {
-    flex: 1,
-    padding: '10px 16px',
-    borderRadius: 6,
-    border: 'none',
-    background: 'var(--danger)',
-    color: 'var(--text-strong)',
-    fontSize: 14,
-    cursor: 'pointer',
-  },
+  cardAction: { flex: 1 },
   doneBox: {
     textAlign: 'center',
     padding: '60px 20px',
     border: '1px dashed var(--border-strong)',
     borderRadius: 10,
   },
-  primaryButton: {
-    padding: '10px 20px',
-    borderRadius: 6,
-    border: 'none',
-    background: 'var(--accent)',
-    color: 'var(--accent-text)',
-    fontSize: 14,
-    cursor: 'pointer',
-    marginTop: 12,
-  },
-  secondaryButton: {
-    padding: '8px 14px',
-    borderRadius: 6,
-    border: '1px solid var(--border-strong)',
-    background: 'transparent',
-    fontSize: 13,
-    cursor: 'pointer',
-  },
   confirmText: { fontSize: 13, color: 'var(--danger-text)', alignSelf: 'center' },
-  dangerButton: {
-    padding: '8px 14px',
-    borderRadius: 6,
-    border: '1px solid var(--danger)',
-    background: 'transparent',
-    color: 'var(--danger-text)',
-    fontSize: 13,
-    cursor: 'pointer',
-  },
   flaggedList: { display: 'flex', flexDirection: 'column', gap: 10 },
   flaggedRow: {
     border: '1px solid var(--border)',

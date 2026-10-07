@@ -179,7 +179,6 @@ const styles = {
     maxWidth: pt(MEASURE_PT),
     margin: '0 auto',
     padding: `${pt(30)} 16px ${pt(60)}`,
-    hyphens: 'auto',
   },
   status: {
     padding: 48,

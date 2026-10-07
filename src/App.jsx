@@ -56,7 +56,7 @@ function App() {
         </a>
         <span style={navStyles.user}>
           {user}
-          <button style={navStyles.signOut} onClick={() => setUser(null)}>
+          <button className="btn btn-sm" onClick={() => setUser(null)}>
             Sign out
           </button>
         </span>
@@ -87,14 +87,6 @@ const navStyles = {
     alignItems: 'center',
     gap: 12,
     color: 'var(--text-muted)',
-  },
-  signOut: {
-    padding: '4px 10px',
-    borderRadius: 6,
-    border: '1px solid var(--border-strong)',
-    background: 'transparent',
-    fontSize: 13,
-    cursor: 'pointer',
   },
 };
 

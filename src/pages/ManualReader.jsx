@@ -69,6 +69,15 @@ const anchorId = (nodeKey) => `n-${nodeKey}`;
 // one node; the anchor goes on the first.
 const TOC_LEVEL = { 'part-number': 1, 'part-title': 1, 'heading-1': 2, subheading: 3 };
 
+// Parts listed flat in the contents: no expandable chapters, but some chapters
+// are promoted to their own top-level line under the part's number. Display
+// only; the data keeps them as chapters. Keyed by node key.
+const TOC_FLAT_PARTS = new Set(['m94m2y']); // Part X
+const TOC_PROMOTE = {
+  qg4bre: 'Administrative Policies',
+  d38re5: 'Current Moral and Social Issues',
+};
+
 function Block({ block }) {
   const body = renderInline(block.body, block.id);
   const id = TOC_LEVEL[block.kind] && block.kind !== 'part-title' ? anchorId(block.node_key) : undefined;
@@ -158,12 +167,32 @@ function groupSheets(groups) {
 const plainText = (body) => body.replace(/<[^>]+>/g, '');
 
 // Contents tree from the heading blocks; containment comes from section_key.
-// Parents precede children in document order, so one pass suffices.
+// Parents precede children in document order, so one pass suffices. Inside a
+// flat part (until the next part starts) headings are skipped, except promoted
+// ones, which become roots numbered like their part.
 function buildToc(blocks) {
   const byKey = new Map();
   const roots = [];
+  let flatPart = null;
   for (const b of blocks) {
     if (!TOC_LEVEL[b.kind]) continue;
+    if (b.kind === 'part-number') {
+      flatPart = TOC_FLAT_PARTS.has(b.node_key) ? b.node_key : null;
+    } else if (flatPart && b.node_key !== flatPart) {
+      const title = TOC_PROMOTE[b.node_key];
+      if (title && !byKey.has(b.node_key)) {
+        const entry = {
+          key: b.node_key,
+          number: byKey.get(flatPart).number,
+          title,
+          parent: null,
+          children: [],
+        };
+        byKey.set(b.node_key, entry);
+        roots.push(entry);
+      }
+      continue;
+    }
     let entry = byKey.get(b.node_key);
     if (!entry) {
       const parent = byKey.get(b.section_key) ?? null;

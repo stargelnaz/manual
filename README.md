@@ -15,6 +15,7 @@ validating it — see `plan.md` for the full design.
 | `tools/` | Python pipeline: Word document → `manual.json` → Supabase. See `tools/README.md` |
 | `manual.json` | Built English Manual — nodes and blocks. Generated; do not hand-edit |
 | `overrides.json` | Hand-maintained editorial decisions applied by the pipeline |
+| `node_keys.json` | Permanent node keys (`k7xq2m`) by 2023 locator. Append-only; never edit |
 | `supabase/migrations/` | Database schema (`nodes`, `blocks`, `manual_reading_order` view) |
 | `src/` | React app (plain JavaScript, Vite): the Manual reader and the lexicon review tool |
 | `languages/` | Source documents and lexicons per language |

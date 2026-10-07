@@ -12,8 +12,8 @@ Needs a service role key — the anon key cannot write past RLS:
 
 The project URL is read from .env (VITE_SUPABASE_URL) unless SUPABASE_URL is set.
 
-Idempotency: block ids are sha1(lang|node_key|ordinal)[:8] and node keys are the
-paragraph numbers, so re-running upserts onto the same rows. Two consecutive builds
+Idempotency: node keys come from the append-only node_keys.json and block ids are
+sha1(lang|node_key|ordinal)[:8], so re-running upserts onto the same rows. Two consecutive builds
 of manual.json are byte-identical, so a re-load is a no-op. That is the property the
 translation work depends on — ids must never churn, or every alignment breaks.
 """
@@ -125,18 +125,21 @@ class Api:
                 sys.exit('%s upsert failed (%d): %s' % (table, r.status_code, r.text[:600]))
             print('  %s +%d' % (table, len(batch)))
 
-    def keys(self, table, col):
+    def rows(self, table, select):
         got, offset = [], 0
         while True:
             r = self.s.get('%s/%s' % (self.base, table),
-                           params={'select': col, 'limit': 1000, 'offset': offset})
+                           params={'select': select, 'limit': 1000, 'offset': offset})
             if r.status_code >= 300:
                 sys.exit('%s read failed (%d): %s' % (table, r.status_code, r.text[:400]))
             page = r.json()
-            got += [x[col] for x in page]
+            got += page
             if len(page) < 1000:
                 return got
             offset += 1000
+
+    def keys(self, table, col):
+        return [x[col] for x in self.rows(table, col)]
 
     def delete_in(self, table, col, values):
         for batch in chunks(values, 200):
@@ -195,7 +198,12 @@ def main():
         if have_blocks - want_blocks:
             api.delete_in('blocks', 'id', sorted(have_blocks - want_blocks))
         if have_nodes - want_nodes:
-            api.delete_in('nodes', 'key', sorted(have_nodes - want_nodes))
+            # Each request is its own transaction and parent/section references are
+            # ON DELETE RESTRICT, so delete from the end of the document backwards:
+            # anything that points at a node comes after it.
+            order = {x['key']: x['doc_order'] for x in api.rows('nodes', 'key,doc_order')}
+            api.delete_in('nodes', 'key',
+                          sorted(have_nodes - want_nodes, key=lambda k: -order[k]))
     elif (have_nodes - want_nodes) or (have_blocks - want_blocks):
         print('note: stale rows left in place. Re-run with --prune to remove them.')
 

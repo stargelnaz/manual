@@ -12,6 +12,12 @@ Intermediates land in `build/` and are disposable. `manual.json` and
 `overrides.json` are the products; `overrides.json` is hand-maintained and must not
 be regenerated.
 
+Node keys come from `node_keys.json`, which maps each 2023 locator (paragraph
+number, or a generated anchor such as `10.1~h1`) to a permanent opaque key like
+`k7xq2m`. It is append-only. If the build meets a locator the registry doesn't
+know, it stops; run `python tools/build.py --mint` only when that content is
+genuinely new. Never edit or delete an entry: translations and links depend on them.
+
 `python tools/styles_probe.py` is a check, not a stage — it verifies that the Word
 character styles mean "emphasis" and nothing else. Run it if the source document is
 ever re-exported.
@@ -34,7 +40,7 @@ and inline formatting from the other.
 
 `build.py` asserts, every run:
 
-- node keys unique, block ids unique, every block has a node
+- every node has a registry key; keys unique and well-formed; block ids unique; every block has a node
 - every `parent_key` and `section_key` resolves; no cycles in the section chain
 - paragraph numbers strictly increasing
 - `nodes.order` + `blocks.ordinal` reproduces document order — the query the app runs

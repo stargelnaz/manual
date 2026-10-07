@@ -13,8 +13,15 @@ Two hierarchies, deliberately separate:
   section_key  structural: 10 -> "X. Christian Holiness" -> "ARTICLES OF FAITH"
                               -> "PART II Church Constitution"
 Walk section_key transitively to answer "everything under PART III".
+
+Node keys are opaque six-character codes (k7xq2m), not paragraph numbers.
+Numbers are display and change between editions; a key is identity and never
+does. The build works in *locators* — the 2023 number, or a generated anchor like
+10.1~h1 — and node_keys.json maps each locator to its key. That file is append-only,
+like overrides.json: a locator it does not know is a build error unless --mint
+is passed, so a lost or truncated registry cannot silently re-key the Manual.
 """
-import json, re, sys, hashlib, collections, pathlib
+import json, re, sys, hashlib, collections, pathlib, secrets
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -22,6 +29,14 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 TYPED = {p['n']: p['typed'] for p in json.load(open(ROOT / 'build/paras.json', encoding='utf8'))}
 NORM = json.load(open(ROOT / 'build/paras_norm.json', encoding='utf8'))
 LANG = 'en'
+REGISTRY = ROOT / 'node_keys.json'
+MINT = '--mint' in sys.argv
+
+# No 0/1/i/l/o, so a key can be read aloud or retyped without ambiguity, and a
+# leading letter, so a key can never look like a paragraph number.
+KEY_LETTERS = 'abcdefghjkmnpqrstuvwxyz'
+KEY_CHARS = KEY_LETTERS + '23456789'
+KEY_SHAPE = re.compile(r'^[%s][%s]{5}$' % (KEY_LETTERS, KEY_CHARS))
 
 # Symbol-font private-use codepoints: "<p>" typed with Symbol active, plus the
 # ballot box used on the printed forms.
@@ -191,11 +206,53 @@ for p in NORM:
     ordinal = per_node[open_key]
     per_node[open_key] += 1
     blocks.append({
-        'id': hashlib.sha1(('%s|%s|%d' % (LANG, open_key, ordinal)).encode()).hexdigest()[:8],
         'node_key': open_key, 'lang': LANG, 'ordinal': ordinal, 'kind': kind,
         'marker': marker, 'body': body, 'source_line': n, 'is_lead': is_lead,
     })
     prev_kind = kind
+
+# ---------------------------------------------------------------- keys
+# Everything above speaks locators. Swap them for registry keys here, then
+# derive block ids from the keys so ids follow identity, not numbering.
+def mint(taken):
+    while True:
+        k = secrets.choice(KEY_LETTERS) + ''.join(secrets.choice(KEY_CHARS) for _ in range(5))
+        if k not in taken:
+            return k
+
+
+registry = (json.load(open(REGISTRY, encoding='utf8'))['keys']
+            if REGISTRY.exists() else {})
+missing = [d['key'] for d in nodes if d['key'] not in registry]
+if missing and not MINT:
+    sys.exit('%d node(s) have no key in node_keys.json, e.g. %s.\n'
+             'If this is genuinely new content, re-run with --mint.'
+             % (len(missing), missing[:5]))
+if missing:
+    taken = set(registry.values())
+    for loc in missing:
+        registry[loc] = mint(taken)
+        taken.add(registry[loc])
+    json.dump({'_comment': [
+        'Permanent node keys, by 2023 locator: the paragraph number, or a generated',
+        'anchor (10.1~h1, front~p2) for headings, parts and standalone notes.',
+        'Append-only. Never edit or remove an entry: translations and links are keyed',
+        'on these. Written by tools/build.py --mint.'],
+        'keys': registry},
+        open(REGISTRY, 'w', encoding='utf8', newline='\n'), ensure_ascii=False, indent=1)
+    print('minted :', len(missing), 'new key(s) into', REGISTRY.name)
+
+assert len(set(registry.values())) == len(registry), 'duplicate key in registry'
+assert all(KEY_SHAPE.match(k) for k in registry.values()), 'malformed key in registry'
+
+for d in nodes:
+    d['key'] = registry[d['key']]
+    d['parent_key'] = registry[d['parent_key']] if d['parent_key'] else None
+    d['section_key'] = registry[d['section_key']] if d['section_key'] else None
+for i, b in enumerate(blocks):
+    key = registry[b['node_key']]
+    bid = hashlib.sha1(('%s|%s|%d' % (LANG, key, b['ordinal'])).encode()).hexdigest()[:8]
+    blocks[i] = {'id': bid, **b, 'node_key': key}
 
 # ---------------------------------------------------------------- gates
 bykey = {d['key']: d for d in nodes}
@@ -252,4 +309,6 @@ print('blocks :', len(blocks), 'of', len(NORM), 'w:p')
 print('numbers:', numbered[0]['number'], '->', numbered[-1]['number'])
 print('nodes with a section:', sum(1 for d in nodes if d['section_key']),
       ' roots:', sum(1 for d in nodes if not d['section_key']))
+print('keys   :', len(nodes), 'from', REGISTRY.name,
+      '  unused registry entries:', len(registry) - len(nodes))
 print('all gates passed')

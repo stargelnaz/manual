@@ -1,0 +1,145 @@
+/*
+ * "Night" theme: creme type on dark leather.
+ * Pages use inline style objects; they pull colors from these tokens via
+ * var(--…) so the palette lives in one place.
+ */
+:root {
+  /* Primitives: raw values, named for what they are. Only referenced below. */
+  --brown-950: #170f0a;
+  --brown-900: #2b1d14;
+  --brown-800: #3a2719;
+  --creme-50: #fffaf0;
+  --creme-100: #f3e9d6;
+  --creme-300: #c4b294;
+  --creme-500: #8f7c63;
+  --brass-400: #c9a86a;
+  --brass-950: #1f150e;
+  --moss-500: #6f9a5b;
+  --rust-500: #c4604f;
+  --rust-300: #e8907f;
+
+  /*
+   * Latin faces are self-hosted (see main.jsx). Other scripts fall back to
+   * system fonts per glyph, Noto first where installed: Thai, Devanagari
+   * (Hindi, Marathi), then Han/Hangul/Kana. Han characters are shared across
+   * Chinese, Japanese and Korean but drawn differently in each, so the CJK
+   * part of the stack is swapped by :lang() below; content must carry a
+   * lang attribute for that to work.
+   */
+  --font-serif-latin: "Crimson Pro Variable", Georgia, "Times New Roman";
+  --font-sans-latin: "Archivo Variable", system-ui, -apple-system, "Segoe UI";
+
+  --font-serif-indic-thai: "Noto Serif Devanagari", "Kohinoor Devanagari",
+    "Nirmala UI", Mangal, "Noto Serif Thai", Thonburi, "Leelawadee UI", Tahoma;
+  --font-sans-indic-thai: "Noto Sans Devanagari", "Kohinoor Devanagari",
+    "Nirmala UI", Mangal, "Noto Sans Thai", Thonburi, "Leelawadee UI", Tahoma;
+
+  --font-serif-cjk: var(--font-serif-zh);
+  --font-sans-cjk: var(--font-sans-zh);
+  --font-serif-zh: "Noto Serif SC", "Source Han Serif SC", "Songti SC", STSong, SimSun;
+  --font-sans-zh: "Noto Sans SC", "PingFang SC", "Microsoft YaHei";
+  --font-serif-ja: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho";
+  --font-sans-ja: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", Meiryo;
+  --font-serif-ko: "Noto Serif KR", AppleMyungjo, Batang;
+  --font-sans-ko: "Noto Sans KR", "Apple SD Gothic Neo", "Malgun Gothic";
+
+  /* Semantic tokens: named for what they do. Components use only these. */
+  --leather: var(--brown-900);
+  --leather-deep: var(--brown-950);
+  --leather-glow: var(--brown-800);
+  --text: var(--creme-100);
+  --text-strong: var(--creme-50);
+  --text-muted: var(--creme-300);
+  --text-faint: var(--creme-500);
+  --accent: var(--brass-400);
+  --accent-text: var(--brass-950);
+  --border: rgba(243, 233, 214, 0.16);
+  --border-strong: rgba(243, 233, 214, 0.32);
+  --panel: rgba(255, 245, 225, 0.04);
+  --panel-raised: rgba(255, 245, 225, 0.07);
+  --input-bg: rgba(0, 0, 0, 0.28);
+  --track: rgba(255, 245, 225, 0.1);
+  --ok: var(--moss-500);
+  --danger: var(--rust-500);
+  --danger-text: var(--rust-300);
+  --danger-tint: rgba(196, 96, 79, 0.1);
+
+  --leading-body: 1.5; /* unitless: x the element's own font size. Print is 10.5/9.25 = 1.14 */
+
+  color-scheme: dark;
+}
+
+:lang(zh) {
+  --font-serif-cjk: var(--font-serif-zh);
+  --font-sans-cjk: var(--font-sans-zh);
+}
+
+:lang(ja) {
+  --font-serif-cjk: var(--font-serif-ja);
+  --font-sans-cjk: var(--font-sans-ja);
+}
+
+:lang(ko) {
+  --font-serif-cjk: var(--font-serif-ko);
+  --font-sans-cjk: var(--font-sans-ko);
+}
+
+/*
+ * Composite stacks. A var() is resolved where the property is declared, so
+ * these are re-declared on every :lang() element to pick up its CJK swap.
+ */
+:root,
+:lang(zh),
+:lang(ja),
+:lang(ko) {
+  --font-serif: var(--font-serif-latin), var(--font-serif-indic-thai), var(--font-serif-cjk), serif;
+  --font-sans: var(--font-sans-latin), var(--font-sans-indic-thai), var(--font-sans-cjk), sans-serif;
+
+  --font-reading: var(--font-serif); /* Manual body text, major headings, login */
+  --font-division: var(--font-sans); /* Manual minor divisions (subheadings) */
+  --font-ui: var(--font-sans); /* controls, nav, review tool */
+}
+
+/* Tall stacked vowel and tone marks need more room between lines. */
+:lang(hi),
+:lang(mr),
+:lang(th) {
+  --leading-body: 1.85;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  color: var(--text);
+  background-color: var(--leather);
+  /* Grain (SVG turbulence) over a vignette, so the dark brown reads as hide. */
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 30%, var(--leather-glow) 0%, var(--leather) 55%, var(--leather-deep) 100%);
+  background-attachment: fixed;
+}
+
+a {
+  color: var(--accent);
+}
+
+input,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+input,
+textarea {
+  background: var(--input-bg);
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-text);
+}

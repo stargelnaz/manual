@@ -154,76 +154,97 @@ export default function ManualReader() {
   );
 }
 
+// Sizes are written in print points: calc(N * var(--pt)) is "N pt" at the
+// current scale. --pt (set on `main`) is chosen so the print measure, 20p9
+// (26p9 page less 3p margins = 249pt), fills the width between 16px gutters,
+// held between a readable minimum and a desktop maximum. Below the minimum,
+// lines get shorter than print rather than type tinier.
+const MEASURE_PT = 249;
+const pt = (n) => `calc(${n} * var(--pt))`;
+
 const styles = {
   page: {
-    fontFamily: 'Georgia, "Times New Roman", serif',
-    lineHeight: 1.6,
-    color: '#1a1a1a',
-    background: '#fff',
+    fontFamily: 'var(--font-reading)',
+    lineHeight: 'var(--leading-body)',
+    color: 'var(--text)',
     minHeight: '100vh',
+    // Lets `main` scale from this box's width (cqi), which, unlike vw,
+    // excludes the scrollbar.
+    containerType: 'inline-size',
   },
   main: {
-    maxWidth: 680,
+    // 1pt between 1.84px (17px body) and 2.27px (21px body).
+    '--pt': `clamp(17px / 9.25, (100cqi - 32px) / ${MEASURE_PT}, 21px / 9.25)`,
+    fontSize: pt(9.25),
+    maxWidth: pt(MEASURE_PT),
     margin: '0 auto',
-    padding: '48px 24px 96px',
+    padding: `${pt(30)} 16px ${pt(60)}`,
+    hyphens: 'auto',
   },
   status: {
     padding: 48,
     textAlign: 'center',
-    fontFamily: 'Georgia, serif',
-    color: '#555',
+    fontFamily: 'var(--font-reading)',
+    color: 'var(--text-muted)',
   },
   partNumber: {
-    marginTop: 72,
+    marginTop: pt(36),
     textAlign: 'center',
-    fontSize: 15,
+    fontSize: pt(8.5),
     letterSpacing: '0.25em',
     textTransform: 'uppercase',
-    color: '#666',
+    color: 'var(--accent)',
   },
   partTitle: {
     textAlign: 'center',
-    fontSize: 28,
+    fontSize: pt(15),
+    lineHeight: 18 / 15,
     fontWeight: 700,
-    margin: '8px 0 16px',
+    margin: `${pt(4)} 0 ${pt(9)}`,
   },
   partChapterList: {
     textAlign: 'center',
-    fontSize: 14,
-    color: '#666',
-    margin: '2px 0',
+    fontSize: pt(8),
+    color: 'var(--text-muted)',
+    margin: `${pt(1)} 0`,
   },
+  // Major divisions: bold 12/14, centered, 0p6 before / 0p3 after.
   heading1: {
-    marginTop: 56,
-    fontSize: 21,
-    letterSpacing: '0.06em',
-    textTransform: 'uppercase',
+    fontSize: pt(12),
+    lineHeight: 14 / 12,
+    fontWeight: 700,
+    textAlign: 'center',
+    margin: `${pt(6)} 0 ${pt(3)}`,
   },
+  // Subdivisions: "Bold No. 2" 11/13, centered, 0p6 before / 0p3 after.
   subheading: {
-    marginTop: 36,
-    fontSize: 17,
-    fontStyle: 'italic',
-    fontWeight: 600,
+    fontFamily: 'var(--font-division)',
+    fontSize: pt(11),
+    lineHeight: 13 / 11,
+    fontWeight: 700,
+    textAlign: 'center',
+    margin: `${pt(6)} 0 ${pt(3)}`,
   },
+  // Kept below the 0p6 heading space so collapsing margins don't swallow it.
   paragraph: {
-    margin: '12px 0',
+    margin: `${pt(3)} 0`,
     textAlign: 'justify',
   },
   paraNum: {
     fontWeight: 700,
   },
   note: {
-    margin: '10px 0',
-    fontSize: 14.5,
-    color: '#444',
+    margin: `${pt(3)} 0`,
+    fontSize: pt(8.25),
+    color: 'var(--text-muted)',
   },
   list: {
     listStyle: 'none',
-    margin: '8px 0',
-    paddingLeft: 36,
+    margin: `${pt(3)} 0`,
+    paddingLeft: pt(18),
   },
   listItem: {
-    margin: '6px 0',
+    margin: `${pt(2.5)} 0`,
   },
   marker: {
     fontWeight: 600,

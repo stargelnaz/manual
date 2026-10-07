@@ -109,7 +109,7 @@ names are still open. These are the only styles with space before and after.
 | `part-title` | bold 15/18, centered | `part-title` |
 | `part-contents` | 8pt centered, muted | `part-chapter-list` |
 | `heading-1` | bold serif 12/14, centered, 0p6 before / 0p3 after | `heading-1` |
-| `heading-2` | sans 11/13 at weight 500, centered, 0p6 before / 0p3 after | `subheading` |
+| `heading-2` | sans 10/12 at weight 500, centered, 0p6 before / 0p3 after | `subheading` |
 
 ## Inline (character) styles
 

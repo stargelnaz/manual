@@ -428,11 +428,11 @@ const styles = {
     textAlign: 'center',
     margin: `${pt(6)} 0 ${pt(3)}`,
   },
-  // Subdivisions: "Bold No. 2" 11/13 at weight 500, centered, 0p6 before / 0p3 after.
+  // Subdivisions: "Bold No. 2" 10/12 at weight 500, centered, 0p6 before / 0p3 after.
   subheading: {
     fontFamily: 'var(--font-division)',
-    fontSize: pt(11),
-    lineHeight: 13 / 11,
+    fontSize: pt(10),
+    lineHeight: 12 / 10,
     fontWeight: 500,
     textAlign: 'center',
     margin: `${pt(6)} 0 ${pt(3)}`,

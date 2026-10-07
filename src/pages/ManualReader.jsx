@@ -103,7 +103,7 @@ function Block({ block }) {
       return (
         <p style={styles.paragraph}>
           {block.number_visible && (
-            <span style={styles.paraNum}>{block.number} </span>
+            <span style={styles.paraNum}>{block.number}. </span>
           )}
           {body}
         </p>

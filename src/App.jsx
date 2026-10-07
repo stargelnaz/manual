@@ -41,20 +41,35 @@ function useHashRoute() {
 function App() {
   const hash = useHashRoute();
   const [user, setUser] = useTestUser();
+  const [tocOpen, setTocOpen] = useState(false);
   if (!user) return <Login onLogin={setUser} />;
 
-  const page = hash === '#/lexicon' ? <LexiconReview /> : <ManualReader />;
+  const isReader = hash !== '#/lexicon';
+  const page = isReader ? (
+    <ManualReader tocOpen={tocOpen} onTocClose={() => setTocOpen(false)} />
+  ) : (
+    <LexiconReview />
+  );
 
   return (
     <>
-      <nav style={navStyles.bar}>
-        <a href="#/" style={navStyles.link}>
+      <nav className="navbar">
+        {isReader && (
+          <button
+            className="btn btn-sm btn-ghost navbar-toc"
+            aria-expanded={tocOpen}
+            onClick={() => setTocOpen(!tocOpen)}
+          >
+            Contents
+          </button>
+        )}
+        <a href="#/" onClick={() => setTocOpen(false)}>
           Manual
         </a>
-        <a href="#/lexicon" style={navStyles.link}>
+        <a href="#/lexicon" onClick={() => setTocOpen(false)}>
           Lexicon Review
         </a>
-        <span style={navStyles.user}>
+        <span className="navbar-user">
           {user}
           <button className="btn btn-sm" onClick={() => setUser(null)}>
             Sign out
@@ -65,29 +80,5 @@ function App() {
     </>
   );
 }
-
-const navStyles = {
-  bar: {
-    display: 'flex',
-    gap: 16,
-    padding: '10px 24px',
-    alignItems: 'center',
-    borderBottom: '1px solid var(--border)',
-    background: 'rgba(0, 0, 0, 0.25)',
-    fontFamily: 'var(--font-ui)',
-    fontSize: 14,
-  },
-  link: {
-    color: 'var(--text)',
-    textDecoration: 'none',
-  },
-  user: {
-    marginLeft: 'auto',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 12,
-    color: 'var(--text-muted)',
-  },
-};
 
 export default App;

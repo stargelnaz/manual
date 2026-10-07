@@ -122,3 +122,245 @@
   --btn-border: var(--accent);
   --btn-hover-bg: var(--accent);
 }
+
+/*
+ * Layout
+ *   .navbar                      sticky top bar (App)
+ *   .banner                      logo + edition, scrolls away
+ *   .shell                       grid: .shell-sidebar | .shell-content | .shell-gutter
+ *   .page                        a reading sheet; print geometry comes from the reader
+ *   .toc                         contents tree in the sidebar
+ *
+ *   Narrow (<900px): content only; the sidebar is a drawer opened by
+ *   .navbar-toc and shown with [data-open]. 900px+: sidebar + content.
+ *   1280px+: the gutter appears. Sidebar and gutter share the free space
+ *   equally, so the page stays centred in the window and never shifts when
+ *   the gutter fills or empties.
+ */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: var(--nav-h);
+  padding: 0 24px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+  background: var(--bar);
+  font-family: var(--font-ui);
+  font-size: 0.875rem;
+}
+
+.navbar a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.navbar-user {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+}
+
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 28px 16px 20px;
+}
+
+.banner img {
+  width: min(360px, 75vw);
+  height: auto;
+}
+
+.banner p {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-reading);
+  font-size: 1.125rem;
+  letter-spacing: 0.12em;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.shell-sidebar {
+  position: fixed;
+  top: var(--nav-h);
+  bottom: 0;
+  left: 0;
+  z-index: 15;
+  width: min(20rem, 85vw);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--leather-deep);
+  border-right: 1px solid var(--border);
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition:
+    transform 0.2s ease,
+    visibility 0.2s;
+}
+
+.shell-sidebar[data-open] {
+  transform: none;
+  visibility: visible;
+}
+
+.shell-backdrop {
+  position: fixed;
+  inset: var(--nav-h) 0 0 0;
+  z-index: 14;
+  background: var(--scrim);
+}
+
+.shell-content {
+  /* The reader sizes its print points from this box's width (cqi). */
+  container-type: inline-size;
+  min-width: 0;
+  padding-bottom: 48px;
+}
+
+.shell-gutter {
+  display: none;
+}
+
+.page {
+  background-color: var(--page);
+  background-image: linear-gradient(var(--panel), transparent 12rem);
+  box-shadow:
+    inset 0 0 2rem var(--page-shade),
+    var(--page-shadow);
+}
+
+.page + .page {
+  margin-top: 12px;
+}
+
+/* Clear the sticky navbar when jumping to a heading. */
+.page [id] {
+  scroll-margin-top: calc(var(--nav-h) + 1rem);
+}
+
+@media (min-width: 900px) {
+  .shell {
+    grid-template-columns: 16rem minmax(0, 1fr);
+  }
+
+  .shell-sidebar {
+    position: sticky;
+    z-index: auto;
+    width: auto;
+    height: calc(100dvh - var(--nav-h));
+    background: none;
+    border-right: 0;
+    transform: none;
+    visibility: visible;
+    transition: none;
+  }
+
+  .shell-backdrop,
+  .navbar-toc {
+    display: none;
+  }
+
+  .shell-content {
+    padding: 0 24px 64px;
+  }
+
+  .page {
+    border: 1px solid var(--border);
+    border-radius: 3px;
+  }
+
+  .page + .page {
+    margin-top: 32px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .shell {
+    grid-template-columns: minmax(16rem, 1fr) minmax(0, 49rem) minmax(16rem, 1fr);
+  }
+
+  .shell-gutter {
+    display: block;
+  }
+
+  /* Hug the page rather than the window edge. */
+  .toc {
+    max-width: 18rem;
+    margin-left: auto;
+  }
+}
+
+.toc {
+  padding: 16px 12px 32px;
+  font-family: var(--font-ui);
+  font-size: 0.8125rem;
+}
+
+.toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc ul ul {
+  margin: 2px 0 6px 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid var(--border);
+}
+
+.toc-row {
+  display: flex;
+  align-items: flex-start;
+}
+
+.toc-link {
+  flex: 1;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-muted);
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.toc-link:hover {
+  color: var(--text-strong);
+  background: var(--panel);
+}
+
+.toc-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.toc-link[aria-current="true"] {
+  color: var(--accent);
+  background: var(--panel-raised);
+}
+
+.toc-number {
+  display: block;
+  color: var(--accent);
+  font-size: 0.6875rem;
+  letter-spacing: 0.12em;
+}
+
+.toc-toggle[aria-expanded="true"] {
+  transform: rotate(90deg);
+}

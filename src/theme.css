@@ -7,6 +7,7 @@
   /* Primitives: raw values, named for what they are. Only referenced below. */
   --brown-950: #170f0a;
   --brown-900: #2b1d14;
+  --brown-850: #33251b;
   --brown-800: #3a2719;
   --creme-50: #fffaf0;
   --creme-100: #f3e9d6;
@@ -63,6 +64,15 @@
   --danger: var(--rust-500);
   --danger-text: var(--rust-300);
   --danger-tint: rgba(196, 96, 79, 0.1);
+
+  /* The reading sheet: smooth and a shade lighter than the grained leather. */
+  --page: var(--brown-850);
+  --page-shade: rgba(0, 0, 0, 0.25); /* inner edge falloff */
+  --page-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.35);
+  --bar: rgba(23, 15, 10, 0.92); /* sticky navbar over scrolling content */
+  --scrim: rgba(0, 0, 0, 0.5); /* behind the contents drawer */
+
+  --nav-h: 3.25rem;
 
   --leading-body: 1.5; /* unitless: x the element's own font size. Print is 10.5/9.25 = 1.14 */
 

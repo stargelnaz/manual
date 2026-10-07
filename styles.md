@@ -123,6 +123,17 @@ names are still open. These are the only styles with space before and after.
 The full stop is added when the number is displayed. The stored number stays `32` or
 `102.2`, because it's also the paragraph's key for sorting and cross-references.
 
+## Dashes
+
+| Where | Dash | Example |
+|---|---|---|
+| running text | hyphen `-` | `2017-2021`, `co-pastors` |
+| reference range within one chapter, or within one paragraph (subpoint to subpoint, or the paragraph to one of its subpoints) | en dash `–` | `Romans 1:18–25; 5:12–14`, `(300.2–300.3)`, `(113–113.1)` |
+| reference range across chapters, or across paragraphs | em dash `—` | `Romans 7:1—8:9`, `(100—109)`, `(103—104.3)`, `(139.19—140)` |
+
+References are stored with these dashes, set by `tools/normalize.py`. Type a plain
+hyphen in the Word source; the build picks the dash.
+
 ## InDesign styles not yet mapped
 
 List the remaining InDesign style names here with a decision for each: map to a

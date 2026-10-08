@@ -79,9 +79,11 @@ and inline formatting from the other.
   is one (the patterns are in `refs.py`, shared with normalize)
 - exactly 9 parts — I-VIII and X
 
-PART IX (the auxiliary constitutions) was not in the 2023 import. It is being added
-to the database directly, one organization at a time: NYI (¶810) went in on
-2026-10-08 from `languages/english/NYI.docx`; NMI (¶811) and NDI (¶812) follow.
+PART IX (the auxiliary constitutions) was not in the 2023 import. It was added to
+the database directly on 2026-10-08 from `languages/english/NYI.docx`, `nmi.docx` and
+`ndi.docx`: NYI (¶810) by paragraph number; NMI (¶811) and NDI (¶812) by Article
+(a heading) and Section (an unnumbered paragraph whose lead block opens with its
+bold label).
 `PARTS` in `gates.py` is now 10. PART XI (the 900s appendix) still sits under
 PART X, because the 2023 export had no heading for it.
 

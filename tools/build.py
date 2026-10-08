@@ -1,4 +1,11 @@
-"""Stage 3 — nodes and blocks, written to manual.json.
+"""Stage 3 — nodes and blocks, written to build/manual.json.
+
+Historical. The database became the canonical Manual on 2026-10-08; this is how
+the 2023 Word document was turned into it, kept so the derivation stays
+reproducible. It writes to build/, not manual.json — that file is now the
+database's snapshot (tools/export.py) and a rebuild must not overwrite it. And it
+no longer mints: the database does, and a key minted here could collide with one
+minted there.
 
 Text and emphasis come from build/paras_norm.json (rebuilt from Word character
 styles, punctuation normalized, overrides applied). Block semantics — note vs
@@ -17,11 +24,11 @@ Walk section_key transitively to answer "everything under PART III".
 Node keys are opaque six-character codes (k7xq2m), not paragraph numbers.
 Numbers are display and change between editions; a key is identity and never
 does. The build works in *locators* — the 2023 number, or a generated anchor like
-10.1~h1 — and node_keys.json maps each locator to its key. That file is append-only,
-like overrides.json: a locator it does not know is a build error unless --mint
-is passed, so a lost or truncated registry cannot silently re-key the Manual.
+10.1~h1 — and node_keys.json maps each locator to its key. That file is frozen:
+a locator it does not know is a build error, so a lost or truncated registry
+cannot silently re-key the Manual.
 """
-import json, re, sys, hashlib, collections, pathlib, secrets
+import json, re, sys, hashlib, collections, pathlib
 
 from refs import PARA_CITATION, PARA_ITEM, PARA_FIRST
 
@@ -243,33 +250,15 @@ for p in NORM:
 # ---------------------------------------------------------------- keys
 # Everything above speaks locators. Swap them for registry keys here, then
 # derive block ids from the keys so ids follow identity, not numbering.
-def mint(taken):
-    while True:
-        k = secrets.choice(KEY_LETTERS) + ''.join(secrets.choice(KEY_CHARS) for _ in range(5))
-        if k not in taken:
-            return k
-
-
 registry = (json.load(open(REGISTRY, encoding='utf8'))['keys']
             if REGISTRY.exists() else {})
 missing = [d['key'] for d in nodes if d['key'] not in registry]
-if missing and not MINT:
-    sys.exit('%d node(s) have no key in node_keys.json, e.g. %s.\n'
-             'If this is genuinely new content, re-run with --mint.'
-             % (len(missing), missing[:5]))
+if MINT:
+    sys.exit('--mint is retired: the database mints node keys now (mint_node_key()).')
 if missing:
-    taken = set(registry.values())
-    for loc in missing:
-        registry[loc] = mint(taken)
-        taken.add(registry[loc])
-    json.dump({'_comment': [
-        'Permanent node keys, by 2023 locator: the paragraph number, or a generated',
-        'anchor (10.1~h1, front~p2) for headings, parts and standalone notes.',
-        'Append-only. Never edit or remove an entry: translations and links are keyed',
-        'on these. Written by tools/build.py --mint.'],
-        'keys': registry},
-        open(REGISTRY, 'w', encoding='utf8', newline='\n'), ensure_ascii=False, indent=1)
-    print('minted :', len(missing), 'new key(s) into', REGISTRY.name)
+    sys.exit('%d node(s) have no key in node_keys.json, e.g. %s. The registry is frozen;\n'
+             'new content is added in the database, not through this build.'
+             % (len(missing), missing[:5]))
 
 assert len(set(registry.values())) == len(registry), 'duplicate key in registry'
 assert all(KEY_SHAPE.match(k) for k in registry.values()), 'malformed key in registry'
@@ -375,7 +364,7 @@ for d in nodes:
 json.dump({'lang': LANG,
            'source': 'languages/english/data-app-Foreword-through-900s-no-auxilliaries.docx',
            'nodes': nodes, 'blocks': blocks},
-          open(ROOT / 'manual.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
+          open(ROOT / 'build/manual.json', 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 
 print('nodes  :', len(nodes), '  numbered:', len(numbered),
       '  generated:', len(nodes) - len(numbered))

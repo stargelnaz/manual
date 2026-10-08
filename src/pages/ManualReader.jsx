@@ -172,7 +172,14 @@ function TableRun({ blocks }) {
   );
 }
 
-const RUN_KIND = { subpoint: 'list', 'list-item': 'list', 'table-row': 'table' };
+// list-hanging (810.4, 810.5) is a numbered list meant to be set with a hanging
+// indent; until that style exists it renders like any other list.
+const RUN_KIND = {
+  subpoint: 'list',
+  'list-item': 'list',
+  'list-hanging': 'list',
+  'table-row': 'table',
+};
 
 function groupBlocks(blocks) {
   const groups = [];

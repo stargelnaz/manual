@@ -282,3 +282,22 @@ The 19 `w:p` with no block are empty structural markup only: `<ol>` ×2, `</ol>`
 3. Supabase migration for the two tables.
 4. Loader with the idempotency matching above; double-import test.
 5. React renderer over the ordered blocks.
+
+## The database is canonical (2026-10-08)
+
+Steps 1–5 are done, and the English import is complete: the live tables matched
+`manual.json` column for column. From here the text is edited in Supabase, and the
+Word document, `overrides.json` and `node_keys.json` are history.
+
+What moved where:
+
+| was | now |
+|---|---|
+| `build.py` gates on every build | constraints and triggers on every write (migration `20261008001834`), plus `tools/gates.py` via `export.py` for whole-document checks |
+| git history of `manual.json` | `revisions` table (every write, old and new row) — and `manual.json` is still exported and committed as a snapshot |
+| `node_keys.json` + `build.py --mint` | `mint_node_key()`, the default for `nodes.key`; never reissues a key, including deleted ones |
+| block id `sha1(lang\|node_key\|ordinal)[:8]` | random 8 hex characters for new blocks; existing ids unchanged |
+| `load.py` as the import | `load.py --overwrite` as disaster recovery only |
+
+The 2023 import stays reproducible: `build.py` now writes `build/manual.json`, which
+at the switch equalled the exported snapshot in every node and block.

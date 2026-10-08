@@ -2,8 +2,9 @@
  "_comment": [
   "Permanent node keys, by 2023 locator: the paragraph number, or a generated",
   "anchor (10.1~h1, front~p2) for headings, parts and standalone notes.",
-  "Append-only. Never edit or remove an entry: translations and links are keyed",
-  "on these. Written by tools/build.py --mint."
+  "Never edit or remove an entry: translations and links are keyed on these.",
+  "Frozen 2026-10-08, when the database became canonical. New keys are minted",
+  "there by mint_node_key(); this file records only the 2023 import."
  ],
  "keys": {
   "front~h1": "g6v96v",

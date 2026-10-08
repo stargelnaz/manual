@@ -98,6 +98,16 @@ counters, because the source numbering is canonical and sometimes restarts.
 | Space between items | 0 |
 | Data kinds | `list-item` with a marker, `subpoint` |
 
+### `list-hanging`
+Numbered list set with a hanging indent: number at 0p9, text and turnover lines
+aligned after it. Only 810.4 (Our Values) and 810.5 (Our Guiding Principles) use it.
+*Style TBD — renders as `list-number` until it is designed.*
+
+| | |
+|---|---|
+| Marker | stored text (`1.`), hanging |
+| Data kinds | `list-hanging` |
+
 ## Tables
 
 The delegate tables (201.1, 201.2, 205.15, 301.1). Word sets each row as a paragraph

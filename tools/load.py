@@ -1,9 +1,16 @@
-"""Stage 4 — load manual.json into Supabase. Idempotent.
+"""Restore the database from manual.json. Overwrites the canonical text.
 
-    python tools/load.py --check     what would change, touches nothing
-    python tools/load.py             upsert nodes then blocks
-    python tools/load.py --prune     also delete rows no longer in manual.json
-    python tools/load.py --sql       emit build/seed.sql instead of connecting
+The database is the Manual now and manual.json is its snapshot (tools/export.py).
+This script was how the 2023 Word document got in; today it is disaster recovery
+only. Every write replaces whatever the database holds — edits made since the
+snapshot are lost — so writing needs --overwrite.
+
+    python tools/load.py --check                 compare file and database, row by row
+    python tools/load.py --overwrite             upsert nodes then blocks from the file
+    python tools/load.py --overwrite --prune     also delete rows not in the file
+    python tools/load.py --overwrite --sql       emit build/seed.sql instead of connecting
+
+Export first, so the state you are about to replace is in git.
 
 Needs a service role key — the anon key cannot write past RLS:
 
@@ -155,6 +162,8 @@ class Api:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--check', action='store_true', help='report differences, write nothing')
+    ap.add_argument('--overwrite', action='store_true',
+                    help='really replace the canonical database with manual.json')
     ap.add_argument('--prune', action='store_true', help='delete rows absent from manual.json')
     ap.add_argument('--sql', action='store_true', help='emit build/seed.sql instead')
     a = ap.parse_args()
@@ -162,6 +171,9 @@ def main():
     M, nodes, blocks = load_file()
     print('manual.json: %d nodes, %d blocks, lang=%s' % (len(nodes), len(blocks), M['lang']))
 
+    if not (a.check or a.overwrite):
+        sys.exit('The database is canonical; this would replace it with manual.json.\n'
+                 'Compare first with --check. To restore from the file, pass --overwrite.')
     if a.sql:
         return emit_sql(nodes, blocks)
 
@@ -190,6 +202,14 @@ def main():
                          ('stale blocks', have_blocks - want_blocks)):
             if s:
                 print('  %s: %s%s' % (label, sorted(s)[:10], ' ...' if len(s) > 10 else ''))
+        # Same ids is not same text: an edited body keeps its id.
+        for table, rows, pk, cols in (('nodes', nodes, 'key', NODE_COLS),
+                                      ('blocks', blocks, 'id', BLOCK_COLS)):
+            remote = {r[pk]: r for r in api.rows(table, ','.join(cols))}
+            changed = [r[pk] for r in rows
+                       if r[pk] in remote and any(r[c] != remote[r[pk]][c] for c in cols)]
+            print('differ : %d %s%s' % (len(changed), table,
+                  ' e.g. %s' % changed[:10] if changed else ''))
         return print('--check: nothing written.')
 
     # Blocks first when pruning: they cascade from nodes, and deleting a node whose

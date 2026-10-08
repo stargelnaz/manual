@@ -1,22 +1,48 @@
-# Extraction pipeline
+# Tools
 
-Turns the English Word document into `manual.json`. Run from the repo root:
+The database is the canonical Manual. Two tools work against it day to day:
+
+```sh
+python tools/export.py          # database -> manual.json, then the gates
+python tools/export.py --check  # the gates against the database, writes nothing
+```
+
+`export.py` reads through the public read policy, so the anon key in `.env` is
+enough. It writes `manual.json` in the shape the build always wrote, and runs the
+whole-document gates in `gates.py` — the ones a row-level constraint can't express
+(parts count, section cycles, numbering order across the document, ragged tables).
+Commit the snapshot after editing: git is the readable history, and the free plan
+keeps no backups you can download.
+
+The database guards each row itself (migration `20261008001834`):
+
+- every insert, update and delete on `nodes` and `blocks` lands in `revisions`, old
+  and new row, with the role and the signed-in user; no-op writes record nothing
+- block bodies allow only `<em> <b> <sc> <ref to="key">`, properly nested
+- a `<ref>` must name an existing node, and a node that is linked to can't be deleted
+- paragraph numbers strictly increase in document order; `sort_key` matches `number`
+- node keys are permanent: they can't be changed, and `mint_node_key()` — the
+  column default — never reissues one, even after its node is deleted
+- new blocks get a random 8-character id by default
+
+## The 2023 import
+
+How the English Word document became the database. Kept so the derivation stays
+reproducible; nothing here writes to the canonical text.
 
 ```sh
 python tools/extract.py     # docx  -> build/paras.json
 python tools/normalize.py   #       -> build/paras_norm.json  (+ build/normreport.json)
-python tools/build.py       #       -> manual.json
+python tools/build.py       #       -> build/manual.json
 ```
 
-Intermediates land in `build/` and are disposable. `manual.json` and
-`overrides.json` are the products; `overrides.json` is hand-maintained and must not
-be regenerated.
+Everything lands in `build/` and is disposable. `overrides.json` holds the
+hand-made decisions the import applied.
 
-Node keys come from `node_keys.json`, which maps each 2023 locator (paragraph
+Node keys came from `node_keys.json`, which maps each 2023 locator (paragraph
 number, or a generated anchor such as `10.1~h1`) to a permanent opaque key like
-`k7xq2m`. It is append-only. If the build meets a locator the registry doesn't
-know, it stops; run `python tools/build.py --mint` only when that content is
-genuinely new. Never edit or delete an entry: translations and links depend on them.
+`k7xq2m`. It is frozen: the build stops on a locator it doesn't know, and `--mint`
+is retired, because a key minted here could collide with one the database minted.
 
 `python tools/styles_probe.py` is a check, not a stage — it verifies that the Word
 character styles mean "emphasis" and nothing else. Run it if the source document is
@@ -53,9 +79,11 @@ and inline formatting from the other.
   is one (the patterns are in `refs.py`, shared with normalize)
 - exactly 9 parts — I-VIII and X
 
-PART IX exists in the Manual (the auxiliary constitutions, 800 series) but is not in
-this export and has not been added yet. The parts gate will fail the moment it lands,
-which is intended: bump it to 10 deliberately rather than letting the count drift.
+PART IX (the auxiliary constitutions) was not in the 2023 import. It is being added
+to the database directly, one organization at a time: NYI (¶810) went in on
+2026-10-08 from `languages/english/NYI.docx`; NMI (¶811) and NDI (¶812) follow.
+`PARTS` in `gates.py` is now 10. PART XI (the 900s appendix) still sits under
+PART X, because the 2023 export had no heading for it.
 
 Block ids are `sha1(lang|node_key|ordinal)[:8]`, so two consecutive builds produce a
 byte-identical file. That makes the idempotency requirement testable with `diff`.
@@ -75,22 +103,31 @@ Documented in case a re-export reintroduces them:
 - `` is a ballot box on the printed forms, not a `<p>` fragment
 - five small-caps runs are typed as `<span>`; they become `<sc>`
 
-## Stage 4 — loading
+## Restoring from a snapshot
+
+`load.py` loaded the 2023 import. Now it only restores the database from
+`manual.json`, and every write replaces whatever the database holds, so writes
+need `--overwrite`:
 
 ```sh
-python tools/load.py --check    # what would change; writes nothing
-python tools/load.py            # upsert nodes then blocks
-python tools/load.py --prune    # also delete rows no longer in manual.json
-python tools/load.py --sql      # emit build/seed.sql for the SQL editor instead
+python tools/load.py --check                # compare file and database, row by row
+python tools/load.py --overwrite            # upsert nodes then blocks from the file
+python tools/load.py --overwrite --prune    # also delete rows not in the file
+python tools/load.py --overwrite --sql      # emit build/seed.sql for the SQL editor instead
 ```
 
-Needs a service role key — the anon key cannot write past RLS. Put
-`SUPABASE_SERVICE_ROLE_KEY` in the environment or in `.env` (gitignored).
+Export first, so what you're replacing is in git. Needs `SUPABASE_SERVICE_ROLE_KEY`
+in the environment or `.env` (gitignored); the anon key can't write past RLS.
 
-Apply the schema first:
+## Schema changes
+
+Migrations in `supabase/migrations/` are named by the version the database
+recorded, so local and remote history match. Link once with an access token from
+the work account (`SUPABASE_ACCESS_TOKEN` in `.env`), then push:
 
 ```sh
-supabase link --project-ref <ref>
+supabase link --project-ref fpnphylpwzdnzjmfkgfo
+supabase migration list    # local and remote should agree
 supabase db push
 ```
 

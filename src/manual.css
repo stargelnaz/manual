@@ -1,8 +1,48 @@
 /*
  * Manual text styles, as specified in styles.md, under the same names.
  * Scoped to the reading sheet (.manual). Sizes are print points through --pt,
- * which the reader sets on the sheet, so calc(9 * var(--pt)) is the print 0p9.
+ * set on the sheet below, so calc(9 * var(--pt)) is the print 0p9.
  */
+
+/* The sheet. --pt is chosen so the print measure, 20p9 (26p9 page less 3p
+   margins = 249pt), fills the content column between 16px gutters, held between
+   1.84px (17px body) and 2.27px (21px body). Below the minimum, lines get shorter
+   than print rather than type tinier. cqi is the .shell-content width, which,
+   unlike vw, excludes the scrollbar.
+
+   Where there is room the sheet is the 26p9 (321pt) print page; its side margins
+   are whatever is left around the measure, between 16px and the print 3p. */
+.manual {
+  --pt: clamp(17px / 9.25, (100cqi - 32px) / 249, 21px / 9.25);
+  box-sizing: border-box;
+  max-width: calc(321 * var(--pt));
+  margin: 0 auto;
+  padding: calc(30 * var(--pt)) clamp(16px, (100cqi - calc(249 * var(--pt))) / 2, calc(36 * var(--pt)))
+    calc(60 * var(--pt));
+  font-family: var(--font-reading);
+  font-size: calc(9.25 * var(--pt));
+  line-height: var(--leading-body);
+  color: var(--text);
+}
+
+/* para: body text, first line indented 0p9. The 0p3 space is kept below the
+   0p6 heading space so collapsing margins don't swallow it. */
+.manual .para {
+  margin: calc(3 * var(--pt)) 0;
+  text-indent: calc(9 * var(--pt));
+}
+
+/* para-number: the bold number opening a numbered paragraph. */
+.manual .para-number {
+  font-weight: 600;
+}
+
+/* note: smaller, muted; also bible-reference. */
+.manual .note {
+  margin: calc(3 * var(--pt)) 0;
+  font-size: calc(8.25 * var(--pt));
+  color: var(--text-muted);
+}
 
 /* table: rows set tight, no indent; a tab in the source separates the cells.
    The first row is the column heads. Cells are centered, as on the Word tab stops. */
@@ -30,7 +70,82 @@
   text-decoration: none;
 }
 
+/* small caps: <sc> in the data. */
+.manual .small-caps {
+  font-variant: small-caps;
+}
+
 /* table-note: the "(For every ...)" line closing a table, tight to it. */
 .manual .table-note {
   margin: 0 0 calc(3 * var(--pt));
+}
+
+/* list-number, list-hanging, list-bullet: every list hangs its marker. The marker
+   starts at the 0p9 paragraph indent and the text, turnover lines included, aligns
+   1p6 after it, at 2p3. Markers are stored text, never CSS counters; one wider than
+   1p6 pushes its first line along rather than overlapping the text. */
+.manual .list {
+  list-style: none;
+  margin: calc(3 * var(--pt)) 0;
+  padding: 0;
+}
+
+.manual .list-item {
+  margin: calc(2.5 * var(--pt)) 0;
+  padding-left: calc(27 * var(--pt));
+  text-indent: calc(-18 * var(--pt));
+}
+
+.manual .list-marker {
+  display: inline-block;
+  min-width: calc(18 * var(--pt));
+  text-indent: 0;
+  font-weight: 600;
+}
+
+/* part-number: "PART IV", caps, centered, in the accent color. */
+.manual .part-number {
+  margin-top: calc(36 * var(--pt));
+  font-size: calc(8.5 * var(--pt));
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--accent);
+}
+
+/* part-title: bold 15/18, centered. */
+.manual .part-title {
+  margin: calc(4 * var(--pt)) 0 calc(9 * var(--pt));
+  font-size: calc(15 * var(--pt));
+  line-height: calc(18 / 15);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* part-contents: the chapter lines under a part title, 8pt centered, muted. */
+.manual .part-contents {
+  margin: calc(1 * var(--pt)) 0;
+  font-size: calc(8 * var(--pt));
+  text-align: center;
+  color: var(--text-muted);
+}
+
+/* heading-1: major divisions, bold 12/14, centered, 0p6 before / 0p3 after. */
+.manual .heading-1 {
+  margin: calc(6 * var(--pt)) 0 calc(3 * var(--pt));
+  font-size: calc(12 * var(--pt));
+  line-height: calc(14 / 12);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* heading-2: subdivisions, "Bold No. 2" 10/12 at weight 500, centered,
+   0p6 before / 0p3 after. */
+.manual .heading-2 {
+  margin: calc(6 * var(--pt)) 0 calc(3 * var(--pt));
+  font-family: var(--font-division);
+  font-size: calc(10 * var(--pt));
+  line-height: calc(12 / 10);
+  font-weight: 500;
+  text-align: center;
 }

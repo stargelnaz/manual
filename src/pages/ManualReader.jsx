@@ -60,7 +60,7 @@ function renderInline(body, keyPrefix) {
           </a>
         );
       return (
-        <span key={key} style={{ fontVariant: 'small-caps' }}>
+        <span key={key} className="small-caps">
           {toReact(c)}
         </span>
       );
@@ -96,23 +96,23 @@ function Block({ block }) {
   switch (block.kind) {
     case 'part-number':
       return (
-        <div id={id} style={styles.partNumber}>
+        <div id={id} className="part-number">
           {body}
         </div>
       );
     case 'part-title':
-      return <div style={styles.partTitle}>{body}</div>;
+      return <div className="part-title">{body}</div>;
     case 'part-chapter-list':
-      return <div style={styles.partChapterList}>{body}</div>;
+      return <div className="part-contents">{body}</div>;
     case 'heading-1':
       return (
-        <h2 id={id} style={styles.heading1}>
+        <h2 id={id} className="heading-1">
           {body}
         </h2>
       );
     case 'subheading':
       return (
-        <h3 id={id} style={styles.subheading}>
+        <h3 id={id} className="heading-2">
           {block.number_visible && `${block.number}. `}
           {body}
         </h3>
@@ -121,18 +121,18 @@ function Block({ block }) {
       return <p className="table-note">{body}</p>;
     case 'note':
     case 'bible-reference':
-      return <p style={styles.note}>{body}</p>;
+      return <p className="note">{body}</p>;
     case 'lead':
       return (
-        <p id={id} style={styles.paragraph}>
+        <p id={id} className="para">
           {block.number_visible && (
-            <span style={styles.paraNum}>{block.number}. </span>
+            <span className="para-number">{block.number}. </span>
           )}
           {body}
         </p>
       );
     default: // continuation
-      return <p style={styles.paragraph}>{body}</p>;
+      return <p className="para">{body}</p>;
   }
 }
 
@@ -141,10 +141,10 @@ function Block({ block }) {
 // canonical and sometimes restarts, so it is reproduced verbatim.
 function ListRun({ blocks }) {
   return (
-    <ol style={styles.list}>
+    <ol className="list">
       {blocks.map((b) => (
-        <li key={b.id} style={styles.listItem}>
-          {b.marker && <span style={styles.marker}>{b.marker} </span>}
+        <li key={b.id} className="list-item">
+          {b.marker && <span className="list-marker">{b.marker}</span>}
           {renderInline(b.body, b.id)}
         </li>
       ))}
@@ -172,8 +172,7 @@ function TableRun({ blocks }) {
   );
 }
 
-// list-hanging (810.4, 810.5) is a numbered list meant to be set with a hanging
-// indent; until that style exists it renders like any other list.
+// Every list kind is set the same way, with a hanging indent (manual.css).
 const RUN_KIND = {
   subpoint: 'list',
   'list-item': 'list',
@@ -416,10 +415,10 @@ export default function ManualReader({ tocOpen, onTocClose }) {
         </aside>
         {tocOpen && <div className="shell-backdrop" onClick={onTocClose} />}
         <main className="shell-content" lang={LANG}>
-          {error && <div style={styles.status}>Failed to load: {error.message}</div>}
-          {!error && !blocks && <div style={styles.status}>Loading the Manual…</div>}
+          {error && <div className="status">Failed to load: {error.message}</div>}
+          {!error && !blocks && <div className="status">Loading the Manual…</div>}
           {sheets.map((groups) => (
-            <section key={groups[0].blocks[0].id} className="page manual" style={styles.sheet}>
+            <section key={groups[0].blocks[0].id} className="page manual">
               {groups.map((g) =>
                 g.run === 'list' ? (
                   <ListRun key={g.blocks[0].id} blocks={g.blocks} />
@@ -439,99 +438,3 @@ export default function ManualReader({ tocOpen, onTocClose }) {
     </>
   );
 }
-
-// Sizes are written in print points: calc(N * var(--pt)) is "N pt" at the
-// current scale. --pt (set on each sheet) is chosen so the print measure, 20p9
-// (26p9 page less 3p margins = 249pt), fills the content column between 16px
-// gutters, held between a readable minimum and a desktop maximum. Below the
-// minimum, lines get shorter than print rather than type tinier.
-//
-// Where there is room the sheet is the 26p9 print page; its side margins are
-// whatever is left around the measure, between 16px and the print 3p.
-const MEASURE_PT = 249;
-const PAGE_PT = 321;
-const pt = (n) => `calc(${n} * var(--pt))`;
-
-const styles = {
-  sheet: {
-    // 1pt between 1.84px (17px body) and 2.27px (21px body). cqi is the
-    // .shell-content width, which, unlike vw, excludes the scrollbar.
-    '--pt': `clamp(17px / 9.25, (100cqi - 32px) / ${MEASURE_PT}, 21px / 9.25)`,
-    fontFamily: 'var(--font-reading)',
-    lineHeight: 'var(--leading-body)',
-    color: 'var(--text)',
-    fontSize: pt(9.25),
-    boxSizing: 'border-box',
-    maxWidth: pt(PAGE_PT),
-    margin: '0 auto',
-    padding: `${pt(30)} clamp(16px, (100cqi - ${pt(MEASURE_PT)}) / 2, ${pt(36)}) ${pt(60)}`,
-  },
-  status: {
-    padding: 48,
-    textAlign: 'center',
-    fontFamily: 'var(--font-reading)',
-    color: 'var(--text-muted)',
-  },
-  partNumber: {
-    marginTop: pt(36),
-    textAlign: 'center',
-    fontSize: pt(8.5),
-    letterSpacing: '0.25em',
-    textTransform: 'uppercase',
-    color: 'var(--accent)',
-  },
-  partTitle: {
-    textAlign: 'center',
-    fontSize: pt(15),
-    lineHeight: 18 / 15,
-    fontWeight: 700,
-    margin: `${pt(4)} 0 ${pt(9)}`,
-  },
-  partChapterList: {
-    textAlign: 'center',
-    fontSize: pt(8),
-    color: 'var(--text-muted)',
-    margin: `${pt(1)} 0`,
-  },
-  // Major divisions: bold 12/14, centered, 0p6 before / 0p3 after.
-  heading1: {
-    fontSize: pt(12),
-    lineHeight: 14 / 12,
-    fontWeight: 700,
-    textAlign: 'center',
-    margin: `${pt(6)} 0 ${pt(3)}`,
-  },
-  // Subdivisions: "Bold No. 2" 10/12 at weight 500, centered, 0p6 before / 0p3 after.
-  subheading: {
-    fontFamily: 'var(--font-division)',
-    fontSize: pt(10),
-    lineHeight: 12 / 10,
-    fontWeight: 500,
-    textAlign: 'center',
-    margin: `${pt(6)} 0 ${pt(3)}`,
-  },
-  // Kept below the 0p6 heading space so collapsing margins don't swallow it.
-  paragraph: {
-    margin: `${pt(3)} 0`,
-    textIndent: pt(9),
-  },
-    paraNum: {
-    fontWeight: 600,
-  },
-  note: {
-    margin: `${pt(3)} 0`,
-    fontSize: pt(8.25),
-    color: 'var(--text-muted)',
-  },
-  list: {
-    listStyle: 'none',
-    margin: `${pt(3)} 0`,
-    paddingLeft: pt(18),
-  },
-  listItem: {
-    margin: `${pt(2.5)} 0`,
-  },
-  marker: {
-    fontWeight: 600,
-  },
-};

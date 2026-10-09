@@ -12,9 +12,9 @@ same name.
   spaces, no "Manual" prefix. The classes are scoped under the reader's `.manual`
   container, which keeps them clear of `ui.css`.
 - **Sizes** are in print points and picas (`0p9` = 9pt, `1p6` = 18pt), the units of the
-  InDesign file. The reader already scales print points to the screen (`pt()` in
-  `ManualReader.jsx`), so `0p9` is written as `pt(9)` and keeps its proportion to the
-  body text at any width.
+  InDesign file. `.manual` sets `--pt`, one print point at the current screen scale
+  (`src/manual.css`), so `0p9` is written as `calc(9 * var(--pt))` and keeps its
+  proportion to the body text at any width.
 - **Leading** is one unitless value, `--leading-body` (1.5), for all running text. The
   print leading (10.5 on 9.25, 8.5 on 7) is listed for reference only. Headings set
   their own leading.
@@ -70,43 +70,35 @@ Smaller, block-indented text set off from the body. *InDesign: Manual Note.*
 
 ## Lists
 
-### `list-bullet`
-Generic bulleted list, with a hanging indent: the bullet sits at 0p9 and the text at
-1p6, so turnover lines align with the first word, not the bullet. *InDesign: TBD.*
-
-| | |
-|---|---|
-| Size / leading | as `para` |
-| Marker | `•` at 0p9 |
-| Text indent | 1p6 (hanging) |
-| Space between items | 0 |
-| Data kinds | `list-item` with no stored marker |
-
-### `list-number`
-Numbered list, set like a paragraph rather than with a hanging indent (see 100.2):
-the number starts at the 0p9 first-line indent, the text follows it on the same line,
-and turnover lines return to the left margin. The numbers are stored text, never CSS
-counters, because the source numbering is canonical and sometimes restarts.
+Every list is set with a hanging indent, so a reader can scan the markers: the
+marker starts at the 0p9 paragraph indent and the text, turnover lines included,
+aligns at 2p3. The three styles differ only in their marker. Markers are stored
+text, never CSS counters, because the source numbering is canonical and sometimes
+restarts. A marker wider than 1p6 pushes its first line along rather than overlapping
+the text. CSS: `.manual .list`, `.list-item`, `.list-marker` in `src/manual.css`.
 *InDesign: TBD.*
 
 | | |
 |---|---|
 | Based on | `para` |
-| First-line indent | 0p9 |
-| Marker | stored text (`1.`, `(1)`), then a space; weight TBD |
-| Turnover lines | flush to the left margin |
-| Space between items | 0 |
-| Data kinds | `list-item` with a marker, `subpoint` |
+| Marker | at 0p9, in a 1p6 box; weight 600 |
+| Text and turnover lines | 2p3 (hanging) |
+| Space around the list | 0p3 |
+| Space between items | 2.5pt |
+
+### `list-number`
+Numbered list, as in 100.2. Marker: stored text (`1.`, `(1)`).
+Data kinds: `list-item` with a marker, `subpoint`.
 
 ### `list-hanging`
-Numbered list set with a hanging indent: number at 0p9, text and turnover lines
-aligned after it. Only 810.4 (Our Values) and 810.5 (Our Guiding Principles) use it.
-*Style TBD — renders as `list-number` until it is designed.*
+The numbered lists of 810.4 (Our Values) and 810.5 (Our Guiding Principles). Kept as
+its own kind from the source; set exactly as `list-number`.
+Data kinds: `list-hanging`.
 
-| | |
-|---|---|
-| Marker | stored text (`1.`), hanging |
-| Data kinds | `list-hanging` |
+### `list-bullet`
+Unnumbered list items. No marker is drawn yet; the text sits at 2p3 like the other
+lists. *Bullet TBD.*
+Data kinds: `list-item` with no stored marker.
 
 ## Tables
 
@@ -162,7 +154,7 @@ names are still open. These are the only styles with space before and after.
 |---|---|---|
 | emphasis | `<em>` | italic |
 | strong | `<b>` | bold |
-| small caps | `<sc>` | `font-variant: small-caps` |
+| `small-caps` | `<sc>` | `font-variant: small-caps` |
 | `para-number` | paragraph number before a `lead` block | bold, always followed by a full stop, then a space: `32.`, `102.2.` |
 | `cross-reference` | `<ref to="key">` around one item of a paragraph reference | a link in `--text-muted` (the `note` color), no underline, no visited state |
 

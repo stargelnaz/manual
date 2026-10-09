@@ -128,7 +128,8 @@
  *   .navbar                      sticky top bar (App)
  *   .banner                      logo + edition, scrolls away
  *   .shell                       grid: .shell-sidebar | .shell-content | .shell-gutter
- *   .page                        a reading sheet; print geometry comes from the reader
+ *   .page                        a reading sheet; print geometry is in manual.css
+ *   .status                      loading / error message in place of the sheet
  *   .toc                         contents tree in the sidebar
  *
  *   Narrow (<900px): content only; the sidebar is a drawer opened by
@@ -245,6 +246,13 @@
 
 .page + .page {
   margin-top: 12px;
+}
+
+.status {
+  padding: 48px;
+  text-align: center;
+  font-family: var(--font-reading);
+  color: var(--text-muted);
 }
 
 /* Clear the sticky navbar when jumping to a heading. */

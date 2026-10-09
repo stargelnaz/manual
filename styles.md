@@ -7,8 +7,8 @@ same name.
 
 ## Conventions
 
-- **Names** are lowercase kebab-case, `family-variant`: `para`, `para-flush`,
-  `list-bullet`. The family says what the text is; the variant says how it differs. No
+- **Names** are lowercase kebab-case, `family-variant`: `para`, `list-bullet`,
+  `heading-1`. The family says what the text is; the variant says how it differs. No
   spaces, no "Manual" prefix. The classes are scoped under the reader's `.manual`
   container, which keeps them clear of `ui.css`.
 - **Sizes** are in print points and picas (`0p9` = 9pt, `1p6` = 18pt), the units of the
@@ -40,20 +40,7 @@ The default running paragraph. *InDesign: Manual Paragraph Text.*
 | Alignment | ragged right |
 | Data kinds | `lead`, `continuation` |
 
-A numbered paragraph (a `lead` block with a visible number) is always `para`, never
-`para-flush`, even directly after a heading. It keeps its indent.
-
-### `para-flush`
-`para` with no first-line indent. Used for an unnumbered paragraph that follows a
-heading, where the heading already marks the start, as in conventional typesetting.
-*InDesign: TBD (is there one?).*
-
-| | |
-|---|---|
-| Based on | `para` |
-| First-line indent | 0 |
-| Applies to | the first block after a heading, unless it is a numbered paragraph |
-| Data kinds | none: applied by position, not stored |
+Every paragraph keeps its indent, including the first one after a heading.
 
 ### `note`
 Smaller, block-indented text set off from the body. *InDesign: Manual Note.*
@@ -63,7 +50,7 @@ Smaller, block-indented text set off from the body. *InDesign: Manual Note.*
 | Size / leading | 8pt / 1.5 (print 7/8.5) |
 | Left indent | 0p9 (whole block) |
 | First-line indent | 0 |
-| Space before / after | TBD (see question 1) |
+| Space before / after | 0p3 / 0p3; between two notes, one 0p3 |
 | Alignment | ragged right |
 | Color | `--text-muted` |
 | Data kinds | `note`, `bible-reference` |
@@ -74,8 +61,8 @@ Every list is set with a hanging indent, so a reader can scan the markers: the
 marker starts at the 0p9 paragraph indent and the text, turnover lines included,
 aligns at 2p3. The three styles differ only in their marker. Markers are stored
 text, never CSS counters, because the source numbering is canonical and sometimes
-restarts. A marker wider than 1p6 pushes its first line along rather than overlapping
-the text. CSS: `.manual .list`, `.list-item`, `.list-marker` in `src/manual.css`.
+restarts. Markers are bold (700) in `--text-strong`, like `para-number`. A marker
+wider than 1p6 pushes its first line along rather than overlapping the text. CSS: `.manual .list`, `.list-item`, `.list-marker` in `src/manual.css`.
 *InDesign: TBD.*
 
 | | |
@@ -117,7 +104,7 @@ until its hand-wrapped second column is cleaned up.
 | Size / leading | as `para` |
 | First-line indent | 0 |
 | Space between rows | 0 |
-| Space before | 0p3 (as `para`, for now); none after, so `table-note` sits tight |
+| Space before | 0p3; none after, so `table-note` sits tight |
 | Columns | one per tab-separated cell, sized to the content, 1p6 apart |
 | Cell alignment | centered, as on the Word tab stops |
 | Column heads | the first row; same weight as the body, as in print |
@@ -142,7 +129,7 @@ names are still open. These are the only styles with space before and after.
 
 | Style | Spec (as currently built) | Data kind |
 |---|---|---|
-| `part-number` | 8.5pt caps, centered, accent color (current 0.25em tracking to be removed) | `part-number` |
+| `part-number` | 8.5pt caps, centered, accent color | `part-number` |
 | `part-title` | bold 15/18, centered | `part-title` |
 | `part-contents` | 8pt centered, muted | `part-chapter-list` |
 | `heading-1` | bold serif 12/14, centered, 0p6 before / 0p3 after | `heading-1` |
@@ -153,9 +140,9 @@ names are still open. These are the only styles with space before and after.
 | Style | Markup in data | Rendering |
 |---|---|---|
 | emphasis | `<em>` | italic |
-| strong | `<b>` | bold |
+| strong | `<b>` | bold (700), in `--text-strong` |
 | `small-caps` | `<sc>` | `font-variant: small-caps` |
-| `para-number` | paragraph number before a `lead` block | bold, always followed by a full stop, then a space: `32.`, `102.2.` |
+| `para-number` | paragraph number before a `lead` block | bold (700), in `--text-strong`, always followed by a full stop, then a space: `32.`, `102.2.` |
 | `cross-reference` | `<ref to="key">` around one item of a paragraph reference | a link in `--text-muted` (the `note` color), no underline, no visited state |
 
 The full stop is added when the number is displayed. The stored number stays `32` or
@@ -191,11 +178,6 @@ style above, add a new one, or drop it.
 
 ## Open questions
 
-1. **Space around notes.** With no space between paragraphs, a note relies on its
-   smaller size and 0p9 indent to stand apart from the body. Is that enough, or
-   does a note (or a run of notes) get space before and after? The same question
-   applies to two notes in a row: they have no first-line indent to separate them.
-2. **Number weight in lists.** Bold like `para-number`, or the same weight as the text?
-3. **Nesting:** do notes ever contain lists, or lists contain notes or sub-lists? If
+1. **Nesting:** do notes ever contain lists, or lists contain notes or sub-lists? If
    they do, the indents need to add up (for example, a list in a note starts at
    0p9 + 0p9).

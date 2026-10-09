@@ -25,22 +25,28 @@
   color: var(--text);
 }
 
-/* para: body text, first line indented 0p9. The 0p3 space is kept below the
-   0p6 heading space so collapsing margins don't swallow it. */
+/* para: body text, first line indented 0p9. Paragraphs are separated by the
+   indent alone, with no space between them. */
 .manual .para {
-  margin: calc(3 * var(--pt)) 0;
+  margin: 0;
   text-indent: calc(9 * var(--pt));
 }
 
-/* para-number: the bold number opening a numbered paragraph. */
-.manual .para-number {
-  font-weight: 600;
+/* para-number: the bold number opening a numbered paragraph; strong: <b> in
+   the text. Both set heavier and brighter than the body so they hold up on
+   small screens. */
+.manual .para-number,
+.manual b {
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
-/* note: smaller, muted; also bible-reference. */
+/* note: 8pt, muted, the whole block indented 0p9; also bible-reference. 0p3
+   before and after sets a note off from the body; between two notes the margins
+   collapse to one 0p3. */
 .manual .note {
-  margin: calc(3 * var(--pt)) 0;
-  font-size: calc(8.25 * var(--pt));
+  margin: calc(3 * var(--pt)) 0 calc(3 * var(--pt)) calc(9 * var(--pt));
+  font-size: calc(8 * var(--pt));
   color: var(--text-muted);
 }
 
@@ -100,14 +106,14 @@
   display: inline-block;
   min-width: calc(18 * var(--pt));
   text-indent: 0;
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--text-strong);
 }
 
 /* part-number: "PART IV", caps, centered, in the accent color. */
 .manual .part-number {
   margin-top: calc(36 * var(--pt));
   font-size: calc(8.5 * var(--pt));
-  letter-spacing: 0.25em;
   text-transform: uppercase;
   text-align: center;
   color: var(--accent);
